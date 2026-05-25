@@ -6,10 +6,10 @@ function InputField({
   trailingAction,
   ...inputProps
 }) {
-  const inputClasses = [
+  const inputClassName = [
     'min-h-11 w-full border-0 bg-transparent px-4 py-3 pl-10',
     'text-[0.95rem] text-[#0F1419] outline-none placeholder:text-[#4A5568]',
-    trailingAction ? 'pr-10' : '',
+    trailingAction ? 'pr-12' : '',
   ]
     .filter(Boolean)
     .join(' ')
@@ -18,11 +18,11 @@ function InputField({
     <div className="flex flex-col">
       <div
         className={
-          labelAddon ? 'flex items-center justify-between gap-2' : undefined
+          labelAddon ? 'flex items-center justify-between gap-3' : undefined
         }
       >
         <label
-          className="mb-2 block text-xs font-medium text-white [font-family:'Geist_Mono',monospace]"
+          className="mb-2 block text-xs font-medium leading-tight text-[#0F1419] [font-family:'Geist_Mono',monospace]"
           htmlFor={id}
         >
           {label}
@@ -37,9 +37,11 @@ function InputField({
         >
           {leadingIcon}
         </span>
-        <input id={id} className={inputClasses} {...inputProps} />
+
+        <input id={id} className={inputClassName} {...inputProps} />
+
         {trailingAction ? (
-          <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center justify-center">
+          <div className="absolute right-0 top-1/2 flex -translate-y-1/2 items-center justify-center">
             {trailingAction}
           </div>
         ) : null}
