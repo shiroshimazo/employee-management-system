@@ -1,17 +1,10 @@
 import { useState } from 'react'
 import { Eye, EyeOff, Lock, Mail, User } from 'lucide-react'
 
-const fieldNames = [
-  'firstName',
-  'lastName',
-  'email',
-  'password',
-  'confirmPassword',
-]
+const fieldNames = ['fullName', 'email', 'password', 'confirmPassword']
 
 const initialFormState = {
-  firstName: '',
-  lastName: '',
+  fullName: '',
   email: '',
   password: '',
   confirmPassword: '',
@@ -28,12 +21,10 @@ function validateRegistration(values) {
   const errors = {}
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-  if (!values.firstName.trim()) {
-    errors.firstName = 'First name is required.'
-  }
-
-  if (!values.lastName.trim()) {
-    errors.lastName = 'Last name is required.'
+  if (!values.fullName.trim()) {
+    errors.fullName = 'Full name is required.'
+  } else if (values.fullName.trim().split(/\s+/).length < 2) {
+    errors.fullName = 'Enter your first and last name.'
   }
 
   if (!values.email.trim()) {
@@ -124,9 +115,9 @@ function RegistrationPage() {
           <div className="flex flex-col">
             <label
               className="mb-2 block text-xs font-medium leading-tight text-[#0F1419] [font-family:'Geist_Mono',monospace]"
-              htmlFor="firstName"
+              htmlFor="fullName"
             >
-              First Name
+              Full Name
             </label>
             <div className="relative rounded-[6px] border border-transparent bg-[#F1F3F5] transition-[border-color,box-shadow] duration-150 focus-within:border-[#2C5EF5] focus-within:shadow-[0_0_0_3px_rgba(44,94,245,0.15)]">
               <span
@@ -136,71 +127,29 @@ function RegistrationPage() {
                 <User size={16} strokeWidth={2} />
               </span>
               <input
-                id="firstName"
-                name="firstName"
+                id="fullName"
+                name="fullName"
                 className="min-h-11 w-full border-0 bg-transparent px-4 py-3 pl-10 text-[0.95rem] text-[#0F1419] outline-none placeholder:text-[#4A5568]"
                 type="text"
-                value={formState.firstName}
+                value={formState.fullName}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                placeholder="Juan"
-                autoComplete="given-name"
+                placeholder="Juan dela Cruz"
+                autoComplete="name"
                 required
-                aria-invalid={shouldShowError('firstName')}
+                aria-invalid={shouldShowError('fullName')}
                 aria-describedby={
-                  shouldShowError('firstName') ? 'firstName-error' : undefined
+                  shouldShowError('fullName') ? 'fullName-error' : undefined
                 }
               />
             </div>
-            {shouldShowError('firstName') ? (
+            {shouldShowError('fullName') ? (
               <p
-                id="firstName-error"
+                id="fullName-error"
                 className="mb-0 mt-2 text-xs leading-snug text-[#B42318]"
                 role="alert"
               >
-                {errors.firstName}
-              </p>
-            ) : null}
-          </div>
-
-          <div className="flex flex-col">
-            <label
-              className="mb-2 block text-xs font-medium leading-tight text-[#0F1419] [font-family:'Geist_Mono',monospace]"
-              htmlFor="lastName"
-            >
-              Last Name
-            </label>
-            <div className="relative rounded-[6px] border border-transparent bg-[#F1F3F5] transition-[border-color,box-shadow] duration-150 focus-within:border-[#2C5EF5] focus-within:shadow-[0_0_0_3px_rgba(44,94,245,0.15)]">
-              <span
-                className="pointer-events-none absolute left-3.5 top-1/2 flex -translate-y-1/2 items-center justify-center text-[#4A5568]"
-                aria-hidden="true"
-              >
-                <User size={16} strokeWidth={2} />
-              </span>
-              <input
-                id="lastName"
-                name="lastName"
-                className="min-h-11 w-full border-0 bg-transparent px-4 py-3 pl-10 text-[0.95rem] text-[#0F1419] outline-none placeholder:text-[#4A5568]"
-                type="text"
-                value={formState.lastName}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                placeholder="dela Cruz"
-                autoComplete="family-name"
-                required
-                aria-invalid={shouldShowError('lastName')}
-                aria-describedby={
-                  shouldShowError('lastName') ? 'lastName-error' : undefined
-                }
-              />
-            </div>
-            {shouldShowError('lastName') ? (
-              <p
-                id="lastName-error"
-                className="mb-0 mt-2 text-xs leading-snug text-[#B42318]"
-                role="alert"
-              >
-                {errors.lastName}
+                {errors.fullName}
               </p>
             ) : null}
           </div>
@@ -269,7 +218,7 @@ function RegistrationPage() {
                 value={formState.password}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                placeholder="********"
+                placeholder="••••••••"
                 autoComplete="new-password"
                 required
                 aria-invalid={shouldShowError('password')}
@@ -332,7 +281,7 @@ function RegistrationPage() {
                 value={formState.confirmPassword}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                placeholder="********"
+                placeholder="••••••••"
                 autoComplete="new-password"
                 required
                 aria-invalid={shouldShowError('confirmPassword')}

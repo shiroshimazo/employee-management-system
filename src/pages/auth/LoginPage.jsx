@@ -96,7 +96,7 @@ function LoginPage() {
                 type={showPassword ? 'text' : 'password'}
                 value={formValues.password}
                 onChange={handleChange}
-                placeholder="********"
+                placeholder="••••••••"
                 autoComplete="current-password"
               />
               <div className="absolute right-0 top-1/2 flex -translate-y-1/2 items-center justify-center">
