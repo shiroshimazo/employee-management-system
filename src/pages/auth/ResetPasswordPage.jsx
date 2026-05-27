@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { CheckCircle2, Eye, EyeOff, Lock, ShieldAlert } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { supabase } from '../../lib/supabase.js'
 import { updatePassword } from '../../services/auth.service.js'
+import { fadeDown } from '../../lib/motion.js'
 
 const MIN_PASSWORD_LENGTH = 8
 
@@ -196,7 +198,8 @@ function ResetPasswordPage() {
   if (linkStatus === 'invalid') {
     return (
       <main className="flex min-h-dvh items-center justify-center bg-white px-6 py-8 [font-family:'Geist',sans-serif]">
-        <div
+        <motion.div
+          {...fadeDown}
           className="w-full max-w-[360px] rounded-2xl border border-slate-200 bg-white p-8 shadow-[0_24px_70px_rgba(15,20,25,0.08)] max-[420px]:p-5"
           role="status"
           aria-live="polite"
@@ -223,14 +226,15 @@ function ResetPasswordPage() {
           >
             REQUEST NEW LINK
           </a>
-        </div>
+        </motion.div>
       </main>
     )
   }
 
   return (
     <main className="flex min-h-dvh items-center justify-center bg-white px-6 py-8 [font-family:'Geist',sans-serif]">
-      <form
+      <motion.form
+        {...fadeDown}
         className="w-full max-w-[360px] rounded-2xl border border-slate-200 bg-white p-8 shadow-[0_24px_70px_rgba(15,20,25,0.08)] max-[420px]:p-5"
         onSubmit={handleSubmit}
         aria-label="Reset password form"
@@ -365,7 +369,7 @@ function ResetPasswordPage() {
               Log in
             </a>
           </p>
-        </form>
+        </motion.form>
 
       {submitted ? (
         <div

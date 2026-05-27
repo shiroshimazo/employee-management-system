@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { CheckCircle, Eye, EyeOff, Lock, Mail, User } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { signOutLocal, signUp } from '../../services/auth.service.js'
+import { fadeDown } from '../../lib/motion.js'
 
 const fieldNames = ['fullName', 'email', 'password', 'confirmPassword']
 
@@ -158,7 +160,8 @@ function RegistrationPage() {
           </div>
         </div>
       ) : null}
-      <form
+      <motion.form
+        {...fadeDown}
         className="w-full max-w-[360px] rounded-2xl border border-slate-200 bg-white p-8 shadow-[0_24px_70px_rgba(15,20,25,0.08)] max-[420px]:p-5"
         onSubmit={handleSubmit}
         aria-label="Registration form"
@@ -417,7 +420,7 @@ function RegistrationPage() {
             Log in
           </a>
         </p>
-      </form>
+      </motion.form>
     </main>
   )
 }

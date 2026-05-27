@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { signInWithPassword } from '../../services/auth.service.js'
+import { fadeDown } from '../../lib/motion.js'
 
 function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -42,7 +44,8 @@ function LoginPage() {
 
   return (
     <main className="flex min-h-dvh items-center justify-center bg-white px-6 py-8 [font-family:'Geist',sans-serif]">
-      <form
+      <motion.form
+        {...fadeDown}
         className="w-full max-w-[360px] rounded-2xl border border-slate-200 bg-white p-8 shadow-[0_24px_70px_rgba(15,20,25,0.08)] max-[420px]:p-5"
         onSubmit={handleSubmit}
         aria-label="Login form"
@@ -162,7 +165,7 @@ function LoginPage() {
             Sign up
           </a>
         </p>
-      </form>
+      </motion.form>
     </main>
   )
 }

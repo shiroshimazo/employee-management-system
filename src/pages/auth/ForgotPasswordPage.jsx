@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Mail, MailCheck } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { requestPasswordReset } from '../../services/auth.service.js'
+import { fadeDown } from '../../lib/motion.js'
 
 function ForgotPasswordPage() {
   const [formValues, setFormValues] = useState({
@@ -43,7 +45,8 @@ function ForgotPasswordPage() {
   return (
     <main className="flex min-h-dvh items-center justify-center bg-white px-6 py-8 [font-family:'Geist',sans-serif]">
       {submitted ? (
-        <div
+        <motion.div
+          {...fadeDown}
           className="w-full max-w-[360px] rounded-2xl border border-slate-200 bg-white p-8 shadow-[0_24px_70px_rgba(15,20,25,0.08)] max-[420px]:p-5"
           role="status"
           aria-live="polite"
@@ -71,9 +74,10 @@ function ForgotPasswordPage() {
           >
             BACK TO LOGIN
           </button>
-        </div>
+        </motion.div>
       ) : (
-        <form
+        <motion.form
+          {...fadeDown}
           className="w-full max-w-[360px] rounded-2xl border border-slate-200 bg-white p-8 shadow-[0_24px_70px_rgba(15,20,25,0.08)] max-[420px]:p-5"
           onSubmit={handleSubmit}
           aria-label="Forgot password form"
@@ -145,7 +149,7 @@ function ForgotPasswordPage() {
               Log in
             </a>
           </p>
-        </form>
+        </motion.form>
       )}
     </main>
   )
