@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { Eye, EyeOff, Lock, Mail, User } from 'lucide-react'
-import { signUp } from '../../services/auth.service.js'
+import { CheckCircle, Eye, EyeOff, Lock, Mail, User } from 'lucide-react'
+import { signOutLocal, signUp } from '../../services/auth.service.js'
 
 const fieldNames = ['fullName', 'email', 'password', 'confirmPassword']
 
@@ -54,8 +54,8 @@ function RegistrationPage() {
   const [touchedFields, setTouchedFields] = useState(initialTouchedState)
   const [hasSubmitted, setHasSubmitted] = useState(false)
   const [submitError, setSubmitError] = useState('')
-  const [submitNotice, setSubmitNotice] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showSuccessToast, setShowSuccessToast] = useState(false)
   const errors = validateRegistration(formState)
 
   const handleChange = (event) => {
@@ -80,7 +80,6 @@ function RegistrationPage() {
     event.preventDefault()
     setHasSubmitted(true)
     setSubmitError('')
-    setSubmitNotice('')
     setTouchedFields(
       fieldNames.reduce((fields, fieldName) => {
         fields[fieldName] = true
@@ -97,27 +96,42 @@ function RegistrationPage() {
 
     setIsSubmitting(true)
 
-    const { data, error } = await signUp({
-      email: formState.email,
-      password: formState.password,
-      fullName: formState.fullName.trim(),
-    })
+    try {
+      // Clear any leftover session from a previous signup so this attempt
+      // starts clean. scope:'local' is in-memory only — never hits the network.
+      await signOutLocal()
 
-    setIsSubmitting(false)
+      console.log('[signup] calling supabase signUp')
+      const { error } = await signUp({
+        email: formState.email,
+        password: formState.password,
+        fullName: formState.fullName.trim(),
+      })
+      console.log('[signup] supabase responded', { error })
 
-    if (error) {
-      setSubmitError(error.message)
-      return
+      if (error) {
+        setIsSubmitting(false)
+        setSubmitError(error.message)
+        return
+      }
+
+      console.log('[signup] success — showing toast')
+      setIsSubmitting(false)
+      setShowSuccessToast(true)
+
+      // Clear the session the auto-login created so /login is a clean slate.
+      await signOutLocal()
+
+      setTimeout(() => {
+        window.location.assign('/login')
+      }, 2000)
+    } catch (thrown) {
+      console.error('[signup] threw:', thrown)
+      setIsSubmitting(false)
+      setSubmitError(
+        thrown?.message ?? 'Something went wrong. Please try again.',
+      )
     }
-
-    if (data.session) {
-      window.location.assign('/')
-      return
-    }
-
-    setSubmitNotice(
-      'Account created. Check your email for a confirmation link before signing in.',
-    )
   }
 
   const shouldShowError = (fieldName) =>
@@ -125,6 +139,25 @@ function RegistrationPage() {
 
   return (
     <main className="flex min-h-dvh items-center justify-center bg-white px-6 py-8 [font-family:'Geist',sans-serif]">
+      {showSuccessToast ? (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed left-1/2 top-6 z-50 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-start gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-[0_24px_70px_rgba(15,20,25,0.12)]"
+        >
+          <span className="mt-0.5 flex shrink-0 text-[#16A34A]" aria-hidden="true">
+            <CheckCircle size={20} strokeWidth={2} />
+          </span>
+          <div className="flex flex-col">
+            <p className="m-0 text-sm font-semibold leading-snug text-[#0F1419]">
+              Account created
+            </p>
+            <p className="mb-0 mt-0.5 text-xs leading-snug text-[#4A5568]">
+              You can log in now. Redirecting…
+            </p>
+          </div>
+        </div>
+      ) : null}
       <form
         className="w-full max-w-[360px] rounded-2xl border border-slate-200 bg-white p-8 shadow-[0_24px_70px_rgba(15,20,25,0.08)] max-[420px]:p-5"
         onSubmit={handleSubmit}
@@ -371,15 +404,6 @@ function RegistrationPage() {
               role="alert"
             >
               {submitError}
-            </p>
-          ) : null}
-
-          {submitNotice ? (
-            <p
-              className="mb-0 mt-1 text-center text-xs leading-snug text-[#0F1419]"
-              role="status"
-            >
-              {submitNotice}
             </p>
           ) : null}
         </div>

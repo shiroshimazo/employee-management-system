@@ -20,6 +20,12 @@ export async function signOut() {
   return supabase.auth.signOut()
 }
 
+export async function signOutLocal() {
+  // Clears the in-memory + localStorage session without hitting the network.
+  // Use before signUp so a persisted session from a prior signup can't conflict.
+  return supabase.auth.signOut({ scope: 'local' })
+}
+
 export async function requestPasswordReset(email) {
   return supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${window.location.origin}/reset-password`,
