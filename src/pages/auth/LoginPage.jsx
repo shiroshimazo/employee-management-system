@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react'
+import { signInWithPassword } from '../../services/auth.service.js'
 
 function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -7,6 +8,8 @@ function LoginPage() {
     email: '',
     password: '',
   })
+  const [submitError, setSubmitError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleChange = (event) => {
     const { name, value } = event.target
@@ -17,8 +20,24 @@ function LoginPage() {
     }))
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
+    setSubmitError('')
+    setIsSubmitting(true)
+
+    const { error } = await signInWithPassword({
+      email: formValues.email,
+      password: formValues.password,
+    })
+
+    setIsSubmitting(false)
+
+    if (error) {
+      setSubmitError(error.message)
+      return
+    }
+
+    window.location.assign('/')
   }
 
   return (
@@ -117,11 +136,21 @@ function LoginPage() {
           </div>
 
           <button
-            className="mt-2 w-full cursor-pointer rounded-[10px] border-0 bg-[#2C5EF5] p-3.5 text-[0.95rem] font-semibold tracking-[0.08em] text-white transition-[background-color,box-shadow,transform] duration-150 hover:bg-[#1F4CE0] hover:shadow-[0_12px_30px_rgba(44,94,245,0.24)] active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-[#2C5EF5]"
+            className="mt-2 w-full cursor-pointer rounded-[10px] border-0 bg-[#2C5EF5] p-3.5 text-[0.95rem] font-semibold tracking-[0.08em] text-white transition-[background-color,box-shadow,transform] duration-150 hover:bg-[#1F4CE0] hover:shadow-[0_12px_30px_rgba(44,94,245,0.24)] active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-[#2C5EF5] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-[#2C5EF5] disabled:hover:shadow-none"
             type="submit"
+            disabled={isSubmitting}
           >
-            LOGIN
+            {isSubmitting ? 'SIGNING IN…' : 'LOGIN'}
           </button>
+
+          {submitError ? (
+            <p
+              className="mb-0 mt-1 text-center text-xs leading-snug text-[#B42318]"
+              role="alert"
+            >
+              {submitError}
+            </p>
+          ) : null}
         </div>
 
         <p className="mb-0 mt-6 text-center text-[0.95rem] leading-[1.4] text-[#4A5568]">

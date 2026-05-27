@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Eye, EyeOff, Lock, Mail, User } from 'lucide-react'
+import { signUp } from '../../services/auth.service.js'
 
 const fieldNames = ['fullName', 'email', 'password', 'confirmPassword']
 
@@ -52,6 +53,9 @@ function RegistrationPage() {
   const [formState, setFormState] = useState(initialFormState)
   const [touchedFields, setTouchedFields] = useState(initialTouchedState)
   const [hasSubmitted, setHasSubmitted] = useState(false)
+  const [submitError, setSubmitError] = useState('')
+  const [submitNotice, setSubmitNotice] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const errors = validateRegistration(formState)
 
   const handleChange = (event) => {
@@ -72,9 +76,11 @@ function RegistrationPage() {
     }))
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
     setHasSubmitted(true)
+    setSubmitError('')
+    setSubmitNotice('')
     setTouchedFields(
       fieldNames.reduce((fields, fieldName) => {
         fields[fieldName] = true
@@ -86,7 +92,32 @@ function RegistrationPage() {
 
     if (firstInvalidField) {
       document.getElementById(firstInvalidField)?.focus()
+      return
     }
+
+    setIsSubmitting(true)
+
+    const { data, error } = await signUp({
+      email: formState.email,
+      password: formState.password,
+      fullName: formState.fullName.trim(),
+    })
+
+    setIsSubmitting(false)
+
+    if (error) {
+      setSubmitError(error.message)
+      return
+    }
+
+    if (data.session) {
+      window.location.assign('/')
+      return
+    }
+
+    setSubmitNotice(
+      'Account created. Check your email for a confirmation link before signing in.',
+    )
   }
 
   const shouldShowError = (fieldName) =>
@@ -327,11 +358,30 @@ function RegistrationPage() {
           </div>
 
           <button
-            className="mt-2 w-full cursor-pointer rounded-[10px] border-0 bg-[#2C5EF5] p-3.5 text-[0.95rem] font-semibold tracking-[0.08em] text-white transition-[background-color,box-shadow,transform] duration-150 hover:bg-[#1F4CE0] hover:shadow-[0_12px_30px_rgba(44,94,245,0.24)] active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-[#2C5EF5]"
+            className="mt-2 w-full cursor-pointer rounded-[10px] border-0 bg-[#2C5EF5] p-3.5 text-[0.95rem] font-semibold tracking-[0.08em] text-white transition-[background-color,box-shadow,transform] duration-150 hover:bg-[#1F4CE0] hover:shadow-[0_12px_30px_rgba(44,94,245,0.24)] active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-[#2C5EF5] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-[#2C5EF5] disabled:hover:shadow-none"
             type="submit"
+            disabled={isSubmitting}
           >
-            SIGN UP
+            {isSubmitting ? 'CREATING ACCOUNT…' : 'SIGN UP'}
           </button>
+
+          {submitError ? (
+            <p
+              className="mb-0 mt-1 text-center text-xs leading-snug text-[#B42318]"
+              role="alert"
+            >
+              {submitError}
+            </p>
+          ) : null}
+
+          {submitNotice ? (
+            <p
+              className="mb-0 mt-1 text-center text-xs leading-snug text-[#0F1419]"
+              role="status"
+            >
+              {submitNotice}
+            </p>
+          ) : null}
         </div>
 
         <p className="mb-0 mt-6 text-center text-[0.95rem] leading-[1.4] text-[#4A5568]">
