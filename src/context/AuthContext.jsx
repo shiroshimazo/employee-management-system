@@ -45,15 +45,27 @@ export function AuthProvider({ children }) {
 
     bootstrap()
 
-    const { data: subscription } = onAuthStateChange(async (_event, nextSession) => {
+    const { data: subscription } = onAuthStateChange((event, nextSession) => {
+      // CRITICAL: never `await` inside this callback. supabase-js holds an
+      // internal auth lock while the listener runs, so any awaited DB call
+      // here will deadlock other auth operations (e.g. updateUser during
+      // password reset). Fire profile loading as a side effect instead.
       if (!isMountedRef.current) return
 
       setSession(nextSession ?? null)
 
+      // During PASSWORD_RECOVERY the user is mid-flow and about to be signed
+      // out after they pick a new password — there's no useful profile to
+      // load, and trying to load one would just race the recovery state.
+      if (event === 'PASSWORD_RECOVERY') {
+        setLoading(false)
+        return
+      }
+
       if (nextSession?.user) {
-        const nextProfile = await loadProfile(nextSession.user.id)
-        if (!isMountedRef.current) return
-        setProfile(nextProfile)
+        loadProfile(nextSession.user.id).then((nextProfile) => {
+          if (isMountedRef.current) setProfile(nextProfile)
+        })
       } else {
         setProfile(null)
       }

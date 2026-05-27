@@ -32,6 +32,10 @@ export async function requestPasswordReset(email) {
   })
 }
 
+export async function updatePassword(newPassword) {
+  return supabase.auth.updateUser({ password: newPassword })
+}
+
 export async function getSession() {
   return supabase.auth.getSession()
 }
