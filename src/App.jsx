@@ -6,8 +6,11 @@ import AdminDashboard from './pages/admin/Dashboard/AdminDashboard.jsx'
 import EmployeeListPage from './pages/admin/Employees/EmployeeListPage.jsx'
 import DepartmentListPage from './pages/admin/Departments/DepartmentListPage.jsx'
 import LeaveListPage from './pages/admin/Leave/LeaveListPage.jsx'
+import AttendanceListPage from './pages/admin/Attendance/AttendanceListPage.jsx'
 import MyLeavePage from './pages/me/MyLeavePage.jsx'
+import MyAttendancePage from './pages/me/MyAttendancePage.jsx'
 import TeamLeavePage from './pages/team/TeamLeavePage.jsx'
+import TeamAttendancePage from './pages/team/TeamAttendancePage.jsx'
 import { useAuth } from './hooks/useAuth.js'
 
 function App() {
@@ -32,9 +35,17 @@ function App() {
     return <MyLeavePage />
   }
 
+  if (currentPath.startsWith('/me/attendance')) {
+    return <MyAttendancePage />
+  }
+
   // Manager routes.
   if (currentPath.startsWith('/team/leave')) {
     return <TeamLeavePage />
+  }
+
+  if (currentPath.startsWith('/team/attendance')) {
+    return <TeamAttendancePage />
   }
 
   // Admin shell. AdminLayout itself handles the unauthenticated bounce, so we
@@ -51,6 +62,10 @@ function App() {
 
   if (currentPath.startsWith('/admin/leave')) {
     return <LeaveListPage />
+  }
+
+  if (currentPath.startsWith('/admin/attendance')) {
+    return <AttendanceListPage />
   }
 
   if (currentPath.startsWith('/admin')) {
