@@ -3,6 +3,7 @@ import RegistrationPage from './pages/auth/RegistrationPage.jsx'
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage.jsx'
 import ResetPasswordPage from './pages/auth/ResetPasswordPage.jsx'
 import AdminDashboard from './pages/admin/Dashboard/AdminDashboard.jsx'
+import EmployeeListPage from './pages/admin/Employees/EmployeeListPage.jsx'
 import { useAuth } from './hooks/useAuth.js'
 
 function App() {
@@ -25,6 +26,10 @@ function App() {
   // Admin shell. AdminLayout itself handles the unauthenticated bounce, so we
   // can render it without a guard here — but we still gate the loading flicker
   // so we don't flash LoginPage before the session resolves.
+  if (currentPath.startsWith('/admin/employees')) {
+    return <EmployeeListPage />
+  }
+
   if (currentPath.startsWith('/admin')) {
     return <AdminDashboard />
   }
