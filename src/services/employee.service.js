@@ -28,6 +28,15 @@ import { supabase } from '../lib/supabase.js'
 // One canonical select string so list / detail / search all return the same
 // shape and the UI never has to branch on "did this code path remember to
 // include the profile join?".
+//
+// FK hints use the *column name* (e.g. `!profile_id`) rather than the
+// auto-generated constraint name. Two reasons:
+//   1. The column-name hint doesn't break if Postgres ever renames the
+//      constraint (e.g. after a `pg_dump`/restore).
+//   2. PostgREST's self-reference resolution for `employees → employees`
+//      via `manager_id` is unreliable with constraint-name hints — it
+//      surfaces as "Could not find a relationship between 'employees'
+//      and 'employees' in the schema cache". Column-name hints sidestep it.
 const EMPLOYEE_SELECT = `
   id,
   employee_number,
@@ -39,22 +48,22 @@ const EMPLOYEE_SELECT = `
   salary,
   created_at,
   updated_at,
-  profile:profiles!employees_profile_id_fkey (
+  profile:profiles!profile_id (
     id,
     full_name,
     role,
     phone,
     avatar_url
   ),
-  department:departments!employees_department_id_fkey (
+  department:departments!department_id (
     id,
     name,
     code
   ),
-  manager:employees!employees_manager_id_fkey (
+  manager:employees!manager_id (
     id,
     employee_number,
-    profile:profiles!employees_profile_id_fkey ( id, full_name )
+    profile:profiles!profile_id ( id, full_name )
   )
 `
 
