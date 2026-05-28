@@ -7,8 +7,11 @@ import EmployeeListPage from './pages/admin/Employees/EmployeeListPage.jsx'
 import DepartmentListPage from './pages/admin/Departments/DepartmentListPage.jsx'
 import LeaveListPage from './pages/admin/Leave/LeaveListPage.jsx'
 import AttendanceListPage from './pages/admin/Attendance/AttendanceListPage.jsx'
-import MyLeavePage from './pages/me/MyLeavePage.jsx'
-import MyAttendancePage from './pages/me/MyAttendancePage.jsx'
+import MyDashboardPage from './pages/employee/Dashboard/MyDashboardPage.jsx'
+import MyAttendancePage from './pages/employee/Attendance/MyAttendancePage.jsx'
+import MyLeavePage from './pages/employee/Leave/MyLeavePage.jsx'
+import MyPayslipsPage from './pages/employee/Payslips/MyPayslipsPage.jsx'
+import MyProfilePage from './pages/employee/Profile/MyProfilePage.jsx'
 import TeamLeavePage from './pages/team/TeamLeavePage.jsx'
 import TeamAttendancePage from './pages/team/TeamAttendancePage.jsx'
 import { useAuth } from './hooks/useAuth.js'
@@ -30,13 +33,26 @@ function App() {
     return <ResetPasswordPage />
   }
 
-  // Employee self-service routes.
-  if (currentPath.startsWith('/me/leave')) {
+  // Employee self-service routes. More-specific paths must come before
+  // /employee so /employee/attendance doesn't fall through to the dashboard.
+  if (currentPath.startsWith('/employee/attendance')) {
+    return <MyAttendancePage />
+  }
+
+  if (currentPath.startsWith('/employee/leave')) {
     return <MyLeavePage />
   }
 
-  if (currentPath.startsWith('/me/attendance')) {
-    return <MyAttendancePage />
+  if (currentPath.startsWith('/employee/payslips')) {
+    return <MyPayslipsPage />
+  }
+
+  if (currentPath.startsWith('/employee/profile')) {
+    return <MyProfilePage />
+  }
+
+  if (currentPath.startsWith('/employee')) {
+    return <MyDashboardPage />
   }
 
   // Manager routes.

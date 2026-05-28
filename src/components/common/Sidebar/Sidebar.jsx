@@ -1,39 +1,107 @@
 import {
   Building2,
+  CalendarCheck,
+  CalendarDays,
+  FileText,
   LayoutDashboard,
   LogOut,
   ScrollText,
   Settings as SettingsIcon,
   ShieldCheck,
   TrendingUp,
+  UserCircle,
   Users,
 } from 'lucide-react'
 import { useAuth } from '../../../hooks/useAuth.js'
 import NavItem from './NavItem.jsx'
 
-const PRIMARY_NAV = [
-  { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-  { label: 'Employees', href: '/admin/employees', icon: Users },
-  { label: 'Departments', href: '/admin/departments', icon: Building2 },
-  { label: 'Reports', href: '/admin/reports', icon: TrendingUp },
-]
-
-const SYSTEM_NAV = [
-  { label: 'Audit Log', href: '/admin/audit', icon: ScrollText },
-  { label: 'Security', href: '/admin/security', icon: ShieldCheck },
-  { label: 'Settings', href: '/admin/settings', icon: SettingsIcon },
-]
-
 /**
- * Sidebar — fixed-width navigation column for the admin shell.
+ * Sidebar — role-aware primary navigation.
  *
- * Active route is derived from window.location.pathname. We match by exact
- * string; if a future route is nested (e.g. /admin/employees/123) we'll
- * switch to a startsWith check, but for now exact-match keeps the behaviour
- * predictable.
+ * Sections (and the roles that see them):
+ *   - Workspace : admin · hr      → /admin/* CRUD pages
+ *   - Team      : manager         → /team/*  read-mostly views
+ *   - Personal  : everyone        → /me/*    self-service
+ *   - System    : admin · hr      → audit / security / settings
+ *
+ * The role check mirrors the RLS policies in 007_rls_policies.sql, so what
+ * the sidebar shows lines up with what the database will actually let the
+ * caller do. Hiding a link doesn't gate access (the route still resolves);
+ * the database is the source of truth — this is just navigation hygiene.
+ *
+ * Active match:
+ *   Dashboard uses exact match (/admin), everything else uses prefix so a
+ *   nested route like /admin/employees/123 still highlights Employees.
  */
+
+const SECTIONS = [
+  {
+    title: 'Workspace',
+    roles: ['admin', 'hr'],
+    items: [
+      { label: 'Dashboard', href: '/admin', icon: LayoutDashboard, exact: true },
+      { label: 'Employees', href: '/admin/employees', icon: Users },
+      { label: 'Departments', href: '/admin/departments', icon: Building2 },
+      { label: 'Leave', href: '/admin/leave', icon: CalendarCheck },
+      { label: 'Attendance', href: '/admin/attendance', icon: CalendarDays },
+      { label: 'Reports', href: '/admin/reports', icon: TrendingUp },
+    ],
+  },
+  {
+    title: 'Team',
+    roles: ['manager'],
+    items: [
+      { label: 'Team Leave', href: '/team/leave', icon: CalendarCheck },
+      { label: 'Team Attendance', href: '/team/attendance', icon: CalendarDays },
+    ],
+  },
+  {
+    title: 'Personal',
+    // Everyone sees their own self-service. Admins / HR / managers see this
+    // *in addition* to their privileged sections — they're employees too.
+    roles: ['admin', 'hr', 'manager', 'payroll', 'employee'],
+    items: [
+      { label: 'My Dashboard', href: '/employee', icon: LayoutDashboard, exact: true },
+      { label: 'My Attendance', href: '/employee/attendance', icon: CalendarDays },
+      { label: 'My Leave', href: '/employee/leave', icon: CalendarCheck },
+      { label: 'My Payslips', href: '/employee/payslips', icon: FileText },
+      { label: 'My Profile', href: '/employee/profile', icon: UserCircle },
+    ],
+  },
+  {
+    title: 'System',
+    roles: ['admin', 'hr'],
+    items: [
+      { label: 'Audit Log', href: '/admin/audit', icon: ScrollText },
+      { label: 'Security', href: '/admin/security', icon: ShieldCheck },
+      { label: 'Settings', href: '/admin/settings', icon: SettingsIcon },
+    ],
+  },
+]
+
+// Friendly label for the brand sub-line based on role.
+const ROLE_LABEL = {
+  admin: 'Admin',
+  hr: 'HR',
+  manager: 'Manager',
+  payroll: 'Payroll',
+  employee: 'Personal',
+}
+
+function isItemActive(currentPath, item) {
+  if (item.exact) return currentPath === item.href
+  return currentPath === item.href || currentPath.startsWith(`${item.href}/`)
+}
+
 function Sidebar({ activePath }) {
-  const { user, signOut } = useAuth()
+  const { user, profile, signOut } = useAuth()
+
+  // Default to 'employee' if profile/role hasn't loaded yet — that gives a
+  // signed-in user something to navigate to instead of an empty sidebar
+  // while the profile request is in flight.
+  const role = profile?.role ?? 'employee'
+
+  const visibleSections = SECTIONS.filter((s) => s.roles.includes(role))
 
   const handleSignOut = async () => {
     await signOut()
@@ -41,7 +109,7 @@ function Sidebar({ activePath }) {
   }
 
   const fullName =
-    user?.user_metadata?.full_name ?? user?.email?.split('@')[0] ?? 'Admin'
+    user?.user_metadata?.full_name ?? user?.email?.split('@')[0] ?? 'User'
   const initials = fullName
     .split(' ')
     .map((part) => part[0])
@@ -68,48 +136,32 @@ function Sidebar({ activePath }) {
             Employee Hub
           </p>
           <p className="m-0 text-[0.7rem] uppercase tracking-[0.12em] text-[#4A5568] [font-family:'Geist_Mono',monospace]">
-            Admin
+            {ROLE_LABEL[role] ?? 'Personal'}
           </p>
         </div>
       </div>
 
       {/* Sections */}
       <nav className="flex flex-1 flex-col gap-6 overflow-y-auto">
-        <div>
-          <p className="mb-2 px-3 text-[0.7rem] font-medium uppercase tracking-[0.12em] text-[#4A5568] [font-family:'Geist_Mono',monospace]">
-            Workspace
-          </p>
-          <ul className="flex flex-col gap-1">
-            {PRIMARY_NAV.map((item) => (
-              <li key={item.href}>
-                <NavItem
-                  icon={item.icon}
-                  label={item.label}
-                  href={item.href}
-                  active={activePath === item.href}
-                />
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div>
-          <p className="mb-2 px-3 text-[0.7rem] font-medium uppercase tracking-[0.12em] text-[#4A5568] [font-family:'Geist_Mono',monospace]">
-            System
-          </p>
-          <ul className="flex flex-col gap-1">
-            {SYSTEM_NAV.map((item) => (
-              <li key={item.href}>
-                <NavItem
-                  icon={item.icon}
-                  label={item.label}
-                  href={item.href}
-                  active={activePath === item.href}
-                />
-              </li>
-            ))}
-          </ul>
-        </div>
+        {visibleSections.map((section) => (
+          <div key={section.title}>
+            <p className="mb-2 px-3 text-[0.7rem] font-medium uppercase tracking-[0.12em] text-[#4A5568] [font-family:'Geist_Mono',monospace]">
+              {section.title}
+            </p>
+            <ul className="flex flex-col gap-1">
+              {section.items.map((item) => (
+                <li key={item.href}>
+                  <NavItem
+                    icon={item.icon}
+                    label={item.label}
+                    href={item.href}
+                    active={isItemActive(activePath, item)}
+                  />
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </nav>
 
       {/* User card + sign out */}
@@ -119,7 +171,7 @@ function Sidebar({ activePath }) {
             className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-[#F1F3F5] text-[0.8rem] font-semibold text-[#0F1419]"
             aria-hidden="true"
           >
-            {initials || 'A'}
+            {initials || 'U'}
           </span>
           <div className="min-w-0 flex-1">
             <p className="m-0 truncate text-[0.85rem] font-semibold leading-tight text-[#0F1419]">

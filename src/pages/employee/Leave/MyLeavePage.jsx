@@ -1,18 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Calendar, Eye, Plus, X } from 'lucide-react'
-import AdminLayout from '../../layouts/AdminLayout.jsx'
-import StatusBadge from '../../components/common/StatusBadge.jsx'
-import LeaveToolbar from '../../components/leave/LeaveToolbar.jsx'
-import LeaveRequestFormModal from '../../components/leave/LeaveRequestFormModal.jsx'
-import LeaveDetailModal from '../../components/leave/LeaveDetailModal.jsx'
+import { Eye, Plus, X } from 'lucide-react'
+import AdminLayout from '../../../layouts/AdminLayout.jsx'
+import StatusBadge from '../../../components/common/StatusBadge.jsx'
+import LeaveToolbar from '../../../components/leave/LeaveToolbar.jsx'
+import LeaveRequestFormModal from '../../../components/leave/LeaveRequestFormModal.jsx'
+import LeaveDetailModal from '../../../components/leave/LeaveDetailModal.jsx'
 import {
   cancelLeaveRequest,
   createLeaveRequest,
   getLeaveRequestsByEmployee,
-} from '../../services/leave.service.js'
-import { useAuth } from '../../hooks/useAuth.js'
-import { supabase } from '../../lib/supabase.js'
+} from '../../../services/leave.service.js'
+import { useAuth } from '../../../hooks/useAuth.js'
+import { supabase } from '../../../lib/supabase.js'
 
 /**
  * MyLeavePage — employee-facing view of their own leave activity.
@@ -48,24 +48,16 @@ function MyLeavePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  // Toolbar state — employee view doesn't need a status filter (they want
-  // to see their full history by default), so we hide it.
   const [leaveType, setLeaveType] = useState('')
   const [startFrom, setStartFrom] = useState('')
   const [startTo, setStartTo] = useState('')
 
-  // Modal state
   const [submitOpen, setSubmitOpen] = useState(false)
   const [detailTarget, setDetailTarget] = useState(null)
 
-  // Per-row pending flag for cancel; modal flow has its own.
   const [pendingId, setPendingId] = useState(null)
-
   const reqTokenRef = useRef(0)
 
-  // Resolve the current user's employees.id row. We keep the lookup in this
-  // file because no other page needs it yet — promote to a hook (e.g.
-  // useCurrentEmployee()) when the second consumer shows up.
   useEffect(() => {
     if (!user?.id) return
     let alive = true
@@ -140,9 +132,6 @@ function MyLeavePage() {
     }
   }
 
-  // The page should still render gracefully if the auth user has a profile
-  // but no employees row yet (admin hasn't onboarded them). We surface a
-  // helpful message in that case rather than a silent empty list.
   const noEmployeeRecord = user?.id && employeeId === null && !employeeError
 
   return (
@@ -170,7 +159,6 @@ function MyLeavePage() {
         </button>
       </header>
 
-      {/* Quick stats */}
       <section
         aria-label="Leave summary"
         className="mb-4 grid grid-cols-4 gap-3 max-[900px]:grid-cols-2 max-[480px]:grid-cols-1"
@@ -188,7 +176,6 @@ function MyLeavePage() {
         onStartFromChange={setStartFrom}
         startTo={startTo}
         onStartToChange={setStartTo}
-        // Hide search + status; employees scan their own short history visually.
         showStatus={false}
         query=""
         onQueryChange={() => {}}
@@ -235,10 +222,7 @@ function MyLeavePage() {
             <tbody>
               {loading && rows.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={7}
-                    className="px-4 py-10 text-center text-[0.85rem] text-[#4A5568]"
-                  >
+                  <td colSpan={7} className="px-4 py-10 text-center text-[0.85rem] text-[#4A5568]">
                     Loading your requests…
                   </td>
                 </tr>

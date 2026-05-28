@@ -1,19 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { CalendarDays, Clock4, MinusCircle, UserMinus } from 'lucide-react'
-import AdminLayout from '../../layouts/AdminLayout.jsx'
-import StatusBadge from '../../components/common/StatusBadge.jsx'
-import AttendanceClockCard from '../../components/attendance/AttendanceClockCard.jsx'
-import AttendanceToolbar from '../../components/attendance/AttendanceToolbar.jsx'
+import AdminLayout from '../../../layouts/AdminLayout.jsx'
+import StatusBadge from '../../../components/common/StatusBadge.jsx'
+import AttendanceClockCard from '../../../components/attendance/AttendanceClockCard.jsx'
+import AttendanceToolbar from '../../../components/attendance/AttendanceToolbar.jsx'
 import {
   clockIn,
   clockOut,
   getAttendanceByEmployee,
   getAttendanceStats,
   getTodayAttendance,
-} from '../../services/attendance.service.js'
-import { useAuth } from '../../hooks/useAuth.js'
-import { supabase } from '../../lib/supabase.js'
+} from '../../../services/attendance.service.js'
+import { useAuth } from '../../../hooks/useAuth.js'
+import { supabase } from '../../../lib/supabase.js'
 
 /**
  * MyAttendancePage — employee-facing view of their own attendance.
@@ -57,14 +57,11 @@ function MyAttendancePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  // Toolbar state — employees scan their own short history visually, so
-  // we hide search + status. The date range is the useful knob.
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
 
   const reqTokenRef = useRef(0)
 
-  // Resolve current user's employees.id once.
   useEffect(() => {
     if (!user?.id) return
     let alive = true
@@ -130,12 +127,10 @@ function MyAttendancePage() {
   async function handleClockIn() {
     const updated = await clockIn(employeeId)
     setToday(updated)
-    // Prepend or replace today's row in the history without a full refetch.
     setRows((prev) => {
       const filtered = prev.filter((r) => r.id !== updated.id)
       return [updated, ...filtered]
     })
-    // Stats might shift (a missing day becomes a present day).
     refreshTodayAndStats()
   }
 
@@ -149,8 +144,7 @@ function MyAttendancePage() {
   const noEmployeeRecord = user?.id && employeeId === null && !employeeError
 
   const monthLabel = useMemo(
-    () =>
-      new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+    () => new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
     [],
   )
 
@@ -182,7 +176,6 @@ function MyAttendancePage() {
         </p>
       ) : null}
 
-      {/* Top: clock card on the left, monthly stats on the right. */}
       <section className="grid grid-cols-3 gap-4 max-[900px]:grid-cols-1">
         <div className="col-span-1 max-[900px]:col-span-1">
           <AttendanceClockCard
@@ -215,30 +208,10 @@ function MyAttendancePage() {
             </header>
 
             <div className="grid grid-cols-4 gap-3 max-[600px]:grid-cols-2">
-              <StatTile
-                icon={CalendarDays}
-                tone="bg-emerald-50 text-emerald-700"
-                label="Present"
-                value={stats?.present ?? 0}
-              />
-              <StatTile
-                icon={Clock4}
-                tone="bg-amber-50 text-amber-700"
-                label="Late"
-                value={stats?.late ?? 0}
-              />
-              <StatTile
-                icon={MinusCircle}
-                tone="bg-blue-50 text-blue-700"
-                label="On leave"
-                value={stats?.leave ?? 0}
-              />
-              <StatTile
-                icon={UserMinus}
-                tone="bg-red-50 text-red-700"
-                label="Absent"
-                value={stats?.absent ?? 0}
-              />
+              <StatTile icon={CalendarDays} tone="bg-emerald-50 text-emerald-700" label="Present" value={stats?.present ?? 0} />
+              <StatTile icon={Clock4} tone="bg-amber-50 text-amber-700" label="Late" value={stats?.late ?? 0} />
+              <StatTile icon={MinusCircle} tone="bg-blue-50 text-blue-700" label="On leave" value={stats?.leave ?? 0} />
+              <StatTile icon={UserMinus} tone="bg-red-50 text-red-700" label="Absent" value={stats?.absent ?? 0} />
             </div>
           </motion.section>
         </div>
@@ -273,16 +246,14 @@ function MyAttendancePage() {
           <table className="w-full border-collapse">
             <thead>
               <tr className="text-left">
-                {['Date', 'Clock in', 'Clock out', 'Hours', 'Status', 'Remarks'].map(
-                  (h, i) => (
-                    <th
-                      key={i}
-                      className="border-b border-slate-200 bg-slate-50/60 px-4 py-3 text-[0.65rem] font-medium uppercase tracking-[0.1em] text-[#4A5568] [font-family:'Geist_Mono',monospace]"
-                    >
-                      {h}
-                    </th>
-                  ),
-                )}
+                {['Date', 'Clock in', 'Clock out', 'Hours', 'Status', 'Remarks'].map((h, i) => (
+                  <th
+                    key={i}
+                    className="border-b border-slate-200 bg-slate-50/60 px-4 py-3 text-[0.65rem] font-medium uppercase tracking-[0.1em] text-[#4A5568] [font-family:'Geist_Mono',monospace]"
+                  >
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
@@ -346,10 +317,7 @@ function StatTile({ icon: Icon, tone, label, value }) {
           {value}
         </p>
       </div>
-      <span
-        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] ${tone}`}
-        aria-hidden="true"
-      >
+      <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] ${tone}`} aria-hidden="true">
         <Icon size={14} strokeWidth={2} />
       </span>
     </div>
