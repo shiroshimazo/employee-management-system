@@ -4,6 +4,7 @@ import ForgotPasswordPage from './pages/auth/ForgotPasswordPage.jsx'
 import ResetPasswordPage from './pages/auth/ResetPasswordPage.jsx'
 import AdminDashboard from './pages/admin/Dashboard/AdminDashboard.jsx'
 import EmployeeListPage from './pages/admin/Employees/EmployeeListPage.jsx'
+import DepartmentListPage from './pages/admin/Departments/DepartmentListPage.jsx'
 import { useAuth } from './hooks/useAuth.js'
 
 function App() {
@@ -28,6 +29,10 @@ function App() {
   // so we don't flash LoginPage before the session resolves.
   if (currentPath.startsWith('/admin/employees')) {
     return <EmployeeListPage />
+  }
+
+  if (currentPath.startsWith('/admin/departments')) {
+    return <DepartmentListPage />
   }
 
   if (currentPath.startsWith('/admin')) {
