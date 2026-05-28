@@ -110,11 +110,12 @@ function EmployeeListPage() {
     return () => clearTimeout(t)
   }, [load, query])
 
-  // Departments are stable across filter changes — load once.
+  // Departments are stable across filter changes — load once. The service
+  // returns { data, count }; we only need the rows here.
   useEffect(() => {
     let alive = true
     getDepartments()
-      .then((d) => alive && setDepartments(d ?? []))
+      .then((res) => alive && setDepartments(res?.data ?? []))
       .catch(() => alive && setDepartments([]))
     return () => {
       alive = false
