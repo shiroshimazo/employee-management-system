@@ -5,6 +5,9 @@ import ResetPasswordPage from './pages/auth/ResetPasswordPage.jsx'
 import AdminDashboard from './pages/admin/Dashboard/AdminDashboard.jsx'
 import EmployeeListPage from './pages/admin/Employees/EmployeeListPage.jsx'
 import DepartmentListPage from './pages/admin/Departments/DepartmentListPage.jsx'
+import LeaveListPage from './pages/admin/Leave/LeaveListPage.jsx'
+import MyLeavePage from './pages/me/MyLeavePage.jsx'
+import TeamLeavePage from './pages/team/TeamLeavePage.jsx'
 import { useAuth } from './hooks/useAuth.js'
 
 function App() {
@@ -24,15 +27,30 @@ function App() {
     return <ResetPasswordPage />
   }
 
+  // Employee self-service routes.
+  if (currentPath.startsWith('/me/leave')) {
+    return <MyLeavePage />
+  }
+
+  // Manager routes.
+  if (currentPath.startsWith('/team/leave')) {
+    return <TeamLeavePage />
+  }
+
   // Admin shell. AdminLayout itself handles the unauthenticated bounce, so we
   // can render it without a guard here — but we still gate the loading flicker
-  // so we don't flash LoginPage before the session resolves.
+  // so we don't flash LoginPage before the session resolves. More-specific
+  // admin paths must come before the generic /admin catch-all.
   if (currentPath.startsWith('/admin/employees')) {
     return <EmployeeListPage />
   }
 
   if (currentPath.startsWith('/admin/departments')) {
     return <DepartmentListPage />
+  }
+
+  if (currentPath.startsWith('/admin/leave')) {
+    return <LeaveListPage />
   }
 
   if (currentPath.startsWith('/admin')) {
