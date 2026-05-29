@@ -58,9 +58,11 @@ const SECTIONS = [
   },
   {
     title: 'Personal',
-    // Everyone sees their own self-service. Admins / HR / managers see this
-    // *in addition* to their privileged sections — they're employees too.
-    roles: ['admin', 'hr', 'manager', 'payroll', 'employee'],
+    // HR / managers / payroll / employees see their own self-service — they're
+    // staff too. Admin is treated as a pure back-office role here, so it's
+    // intentionally excluded: an admin manages the system, not their own
+    // timesheet.
+    roles: ['hr', 'manager', 'payroll', 'employee'],
     items: [
       { label: 'My Dashboard', href: '/employee', icon: LayoutDashboard, exact: true },
       { label: 'My Attendance', href: '/employee/attendance', icon: CalendarDays },

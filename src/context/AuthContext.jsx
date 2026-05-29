@@ -63,14 +63,22 @@ export function AuthProvider({ children }) {
       }
 
       if (nextSession?.user) {
-        loadProfile(nextSession.user.id).then((nextProfile) => {
-          if (isMountedRef.current) setProfile(nextProfile)
-        })
+        // Keep `loading` true until the profile resolves. App.jsx routes by
+        // role, so flipping loading=false while role is still null would flash
+        // a 403 on admin/team pages before the profile lands. We fire the load
+        // as a side effect (never `await` here — see the lock note above) and
+        // only drop `loading` once it settles, success or failure.
+        loadProfile(nextSession.user.id)
+          .then((nextProfile) => {
+            if (isMountedRef.current) setProfile(nextProfile)
+          })
+          .finally(() => {
+            if (isMountedRef.current) setLoading(false)
+          })
       } else {
         setProfile(null)
+        setLoading(false)
       }
-
-      setLoading(false)
     })
 
     return () => {
