@@ -29,7 +29,13 @@ function ChartCard({ title, subtitle, action, children, delay = 0, className = '
         </div>
         {action ? <div className="shrink-0">{action}</div> : null}
       </header>
-      <div className="min-h-0 flex-1">{children}</div>
+      {/* Recharts makes its SVG and several inner layers (bars, axes, areas)
+          focusable, so a click would draw the browser's default focus outline
+          around whichever piece took focus. Kill the outline on every element
+          inside the chart surface — these aren't keyboard-operable controls
+          that need a ring, and the selector is scoped here so buttons/links
+          elsewhere keep theirs. */}
+      <div className="min-h-0 flex-1 [&_*]:outline-none [&_*]:focus:outline-none">{children}</div>
     </motion.section>
   )
 }
