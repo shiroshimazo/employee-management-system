@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Bar,
   BarChart,
@@ -19,22 +19,29 @@ import ChartTooltip from './ChartTooltip.jsx'
  * Horizontal layout because department labels are long and read more cleanly
  * along the y-axis. The bar with the largest value is tinted in brand blue;
  * the rest are tonal so the eye lands on the leader without losing context.
+ *
+ * Data source: pass `data` to drive it (Reports), or omit it to self-fetch
+ * the dashboard mock so the home grid keeps working untouched. Either way the
+ * chart sorts descending itself, so callers don't have to.
  */
-function DepartmentHeadcountChart({ delay = 0 }) {
-  const [data, setData] = useState([])
+function DepartmentHeadcountChart({ delay = 0, data: dataProp }) {
+  const controlled = dataProp !== undefined
+  const [fetched, setFetched] = useState([])
 
   useEffect(() => {
+    if (controlled) return
     let alive = true
-    getDepartmentHeadcount().then((d) => {
-      if (!alive) return
-      // Sort descending so the largest department reads first when scanning.
-      const sorted = [...d].sort((a, b) => b.headcount - a.headcount)
-      setData(sorted)
-    })
+    getDepartmentHeadcount().then((d) => alive && setFetched(d))
     return () => {
       alive = false
     }
-  }, [])
+  }, [controlled])
+
+  // Sort descending so the largest department reads first when scanning.
+  const data = useMemo(() => {
+    const source = controlled ? dataProp : fetched
+    return [...(source ?? [])].sort((a, b) => b.headcount - a.headcount)
+  }, [controlled, dataProp, fetched])
 
   const max = data.length > 0 ? Math.max(...data.map((d) => d.headcount)) : 0
 

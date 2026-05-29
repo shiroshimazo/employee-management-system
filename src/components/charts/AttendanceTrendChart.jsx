@@ -19,17 +19,24 @@ import ChartTooltip from './ChartTooltip.jsx'
  * present vs absent in the tooltip with their own colors. Stacking would
  * compress the absent line into the bottom — keeping them independent makes
  * weekend dips immediately visible.
+ *
+ * Data source: pass `data` to drive it (Reports), or omit it to self-fetch
+ * the dashboard mock so the home grid keeps working untouched.
  */
-function AttendanceTrendChart({ delay = 0 }) {
-  const [data, setData] = useState([])
+function AttendanceTrendChart({ delay = 0, data: dataProp }) {
+  const controlled = dataProp !== undefined
+  const [fetched, setFetched] = useState([])
 
   useEffect(() => {
+    if (controlled) return
     let alive = true
-    getAttendanceTrend().then((d) => alive && setData(d))
+    getAttendanceTrend().then((d) => alive && setFetched(d))
     return () => {
       alive = false
     }
-  }, [])
+  }, [controlled])
+
+  const data = controlled ? dataProp : fetched
 
   return (
     <ChartCard

@@ -27,17 +27,24 @@ const SERIES = [
  * Each series stacks on the same `stackId` so months show total leave with
  * the breakdown visible inside. Top corners on the topmost series get a
  * radius so the stack reads as one rounded column rather than four bricks.
+ *
+ * Data source: pass `data` to drive it (Reports), or omit it to self-fetch
+ * the dashboard mock so the home grid keeps working untouched.
  */
-function LeaveTypesChart({ delay = 0 }) {
-  const [data, setData] = useState([])
+function LeaveTypesChart({ delay = 0, data: dataProp }) {
+  const controlled = dataProp !== undefined
+  const [fetched, setFetched] = useState([])
 
   useEffect(() => {
+    if (controlled) return
     let alive = true
-    getLeaveTypes().then((d) => alive && setData(d))
+    getLeaveTypes().then((d) => alive && setFetched(d))
     return () => {
       alive = false
     }
-  }, [])
+  }, [controlled])
+
+  const data = controlled ? dataProp : fetched
 
   return (
     <ChartCard

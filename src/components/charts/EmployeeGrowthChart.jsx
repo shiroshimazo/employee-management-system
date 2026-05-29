@@ -19,17 +19,25 @@ import ChartTooltip from './ChartTooltip.jsx'
  * Recharts wraps a `LineChart` inside a `ResponsiveContainer` so the SVG
  * adapts to the parent card. We layer a faint Area underneath the line for
  * the "filled trend" feel without overpowering the stroke.
+ *
+ * Data source: pass `data` to drive it (the Reports page feeds real
+ * aggregates); omit it and the chart self-fetches the dashboard mock, which
+ * keeps the home grid working untouched.
  */
-function EmployeeGrowthChart({ delay = 0 }) {
-  const [data, setData] = useState([])
+function EmployeeGrowthChart({ delay = 0, data: dataProp }) {
+  const controlled = dataProp !== undefined
+  const [fetched, setFetched] = useState([])
 
   useEffect(() => {
+    if (controlled) return
     let alive = true
-    getEmployeeGrowth().then((d) => alive && setData(d))
+    getEmployeeGrowth().then((d) => alive && setFetched(d))
     return () => {
       alive = false
     }
-  }, [])
+  }, [controlled])
+
+  const data = controlled ? dataProp : fetched
 
   return (
     <ChartCard

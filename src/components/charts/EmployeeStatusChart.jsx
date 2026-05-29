@@ -8,18 +8,24 @@ import ChartTooltip from './ChartTooltip.jsx'
  * EmployeeStatusChart — donut showing the split between Active / On Leave /
  * Probation / Inactive. The center slot displays the total so the visual
  * answers "how many people total?" before "how are they split?".
+ *
+ * Data source: pass `data` to drive it (Reports), or omit it to self-fetch
+ * the dashboard mock so the home grid keeps working untouched.
  */
-function EmployeeStatusChart({ delay = 0 }) {
-  const [data, setData] = useState([])
+function EmployeeStatusChart({ delay = 0, data: dataProp }) {
+  const controlled = dataProp !== undefined
+  const [fetched, setFetched] = useState([])
 
   useEffect(() => {
+    if (controlled) return
     let alive = true
-    getEmployeeStatus().then((d) => alive && setData(d))
+    getEmployeeStatus().then((d) => alive && setFetched(d))
     return () => {
       alive = false
     }
-  }, [])
+  }, [controlled])
 
+  const data = controlled ? dataProp : fetched
   const total = useMemo(() => data.reduce((s, d) => s + d.value, 0), [data])
 
   return (
