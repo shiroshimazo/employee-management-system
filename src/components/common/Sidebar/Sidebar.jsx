@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   TrendingUp,
   UserCircle,
+  UserCog,
   Users,
 } from 'lucide-react'
 import { useAuth } from '../../../hooks/useAuth.js'
@@ -72,6 +73,9 @@ const SECTIONS = [
     title: 'System',
     roles: ['admin', 'hr'],
     items: [
+      // Users is admin-only — changing roles is gated to admin by RLS, so HR
+      // shouldn't see a link that would just fail at the database.
+      { label: 'Users', href: '/admin/users', icon: UserCog, roles: ['admin'] },
       { label: 'Audit Log', href: '/admin/audit', icon: ScrollText },
       { label: 'Security', href: '/admin/security', icon: ShieldCheck },
       { label: 'Settings', href: '/admin/settings', icon: SettingsIcon },
@@ -102,6 +106,11 @@ function Sidebar({ activePath }) {
   const role = profile?.role ?? 'employee'
 
   const visibleSections = SECTIONS.filter((s) => s.roles.includes(role))
+
+  // An item may narrow its section's roles further (e.g. Users is admin-only
+  // inside an admin+hr section). Default to the section's audience when an
+  // item doesn't specify its own.
+  const itemVisible = (item) => !item.roles || item.roles.includes(role)
 
   const handleSignOut = async () => {
     await signOut()
@@ -149,7 +158,7 @@ function Sidebar({ activePath }) {
               {section.title}
             </p>
             <ul className="flex flex-col gap-1">
-              {section.items.map((item) => (
+              {section.items.filter(itemVisible).map((item) => (
                 <li key={item.href}>
                   <NavItem
                     icon={item.icon}
