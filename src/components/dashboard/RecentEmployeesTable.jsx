@@ -1,23 +1,18 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowUpRight } from 'lucide-react'
-import { getRecentEmployees } from '../../services/dashboardService.js'
-
-// One place for the status chip palette so the table and any future filter
-// chip read from the same vocabulary.
-const STATUS_TONE = {
-  Active: 'bg-emerald-50 text-emerald-700',
-  Probation: 'bg-amber-50 text-amber-700',
-  'On Leave': 'bg-blue-50 text-blue-700',
-  Inactive: 'bg-slate-100 text-slate-600',
-}
+import { getEmployees } from '../../services/employee.service.js'
+import StatusBadge from '../common/StatusBadge.jsx'
 
 function formatJoined(iso) {
+  if (!iso) return '—'
   const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return '—'
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 function initials(name) {
+  if (!name) return '–'
   return name
     .split(' ')
     .map((p) => p[0])
@@ -31,16 +26,18 @@ function initials(name) {
  * RecentEmployeesTable — last few hires with quick context.
  *
  * Lists fields the HR admin actually scans for: name, role, department,
- * joined date, status. Avatars are initials-on-tint so we don't need to
- * fetch images yet — drop in a real avatar URL when the employee record
- * grows one.
+ * joined date, status. Pulls the newest employees from the real table
+ * (created_at desc); StatusBadge renders the employee status with the same
+ * vocabulary used across the app.
  */
 function RecentEmployeesTable({ delay = 0 }) {
   const [rows, setRows] = useState([])
 
   useEffect(() => {
     let alive = true
-    getRecentEmployees().then((d) => alive && setRows(d))
+    getEmployees({ limit: 5, orderBy: 'created_at', ascending: false })
+      .then((res) => alive && setRows(res.data ?? []))
+      .catch(() => alive && setRows([]))
     return () => {
       alive = false
     }
@@ -98,28 +95,22 @@ function RecentEmployeesTable({ delay = 0 }) {
                       className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#2C5EF5]/10 text-[0.7rem] font-semibold text-[#2C5EF5] [font-family:'Geist_Mono',monospace]"
                       aria-hidden="true"
                     >
-                      {initials(r.name)}
+                      {initials(r.profile?.full_name)}
                     </span>
                     <span className="text-[0.9rem] font-medium text-[#0F1419]">
-                      {r.name}
+                      {r.profile?.full_name ?? 'Unnamed'}
                     </span>
                   </div>
                 </td>
-                <td className="px-2 py-3 text-[0.85rem] text-[#4A5568]">{r.role}</td>
+                <td className="px-2 py-3 text-[0.85rem] text-[#4A5568]">{r.position ?? '—'}</td>
                 <td className="px-2 py-3 text-[0.85rem] text-[#4A5568]">
-                  {r.department}
+                  {r.department?.name ?? '—'}
                 </td>
                 <td className="px-2 py-3 text-[0.8rem] text-[#4A5568] [font-family:'Geist_Mono',monospace]">
-                  {formatJoined(r.joinedAt)}
+                  {formatJoined(r.hire_date ?? r.created_at)}
                 </td>
                 <td className="px-2 py-3">
-                  <span
-                    className={`inline-flex items-center rounded-[6px] px-2 py-1 text-[0.7rem] font-semibold ${
-                      STATUS_TONE[r.status] ?? 'bg-slate-100 text-slate-600'
-                    }`}
-                  >
-                    {r.status}
-                  </span>
+                  <StatusBadge value={r.status} />
                 </td>
               </tr>
             ))}

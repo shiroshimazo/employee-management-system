@@ -11,13 +11,12 @@ import LeaveTypesChart from '../../../components/charts/LeaveTypesChart.jsx'
 import RecentEmployeesTable from '../../../components/dashboard/RecentEmployeesTable.jsx'
 import PendingLeaveRequestsTable from '../../../components/dashboard/PendingLeaveRequestsTable.jsx'
 import AuditLogFeed from '../../../components/dashboard/AuditLogFeed.jsx'
-import UpcomingEventsList from '../../../components/dashboard/UpcomingEventsList.jsx'
-import { getKpiSummary } from '../../../services/dashboardService.js'
+import UpcomingLeaveList from '../../../components/dashboard/UpcomingLeaveList.jsx'
+import { getReportData } from '../../../services/report.service.js'
 import { useAuth } from '../../../hooks/useAuth.js'
 
-// Static label/icon binding for the KPI row. We pull dynamic numbers from
-// the dashboard service so the same shape can be swapped to a Supabase
-// query with no markup change.
+// Static label/icon binding for the KPI row. Values come from
+// report.service (real aggregates over the live tables).
 const KPI_FIELDS = [
   { key: 'totalEmployees', label: 'Total Employees', icon: Users },
   { key: 'activeDepartments', label: 'Active Departments', icon: Building2 },
@@ -27,11 +26,14 @@ const KPI_FIELDS = [
 
 function AdminDashboard() {
   const { user } = useAuth()
-  const [kpis, setKpis] = useState(null)
+  const [report, setReport] = useState(null)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     let alive = true
-    getKpiSummary().then((d) => alive && setKpis(d))
+    getReportData()
+      .then((d) => alive && setReport(d))
+      .catch((e) => alive && setError(e?.message ?? 'Failed to load dashboard data.'))
     return () => {
       alive = false
     }
@@ -67,6 +69,12 @@ function AdminDashboard() {
         </span>
       </header>
 
+      {error ? (
+        <p className="mb-6 rounded-[10px] border border-red-200 bg-red-50 px-3 py-2 text-[0.85rem] text-red-700">
+          {error}
+        </p>
+      ) : null}
+
       {/* KPI grid — staggers left → right so the row reads as a sweep. */}
       <section aria-label="Key performance indicators">
         <motion.ul
@@ -78,38 +86,26 @@ function AdminDashboard() {
           }}
           className="grid list-none grid-cols-4 gap-4 p-0 max-[1100px]:grid-cols-2 max-[600px]:grid-cols-1"
         >
-          {KPI_FIELDS.map((field) => {
-            const data = kpis?.[field.key]
-            return (
-              <motion.li
-                key={field.key}
-                variants={{
-                  hidden: { opacity: 0, y: 12 },
-                  visible: {
-                    opacity: 1,
-                    y: 0,
-                    transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
-                  },
-                }}
-              >
-                <StatCard
-                  label={field.label}
-                  icon={field.icon}
-                  accent={field.accent}
-                  value={data?.value ?? '—'}
-                  delta={
-                    data
-                      ? {
-                          value: data.delta,
-                          direction: data.direction,
-                          period: data.period,
-                        }
-                      : undefined
-                  }
-                />
-              </motion.li>
-            )
-          })}
+          {KPI_FIELDS.map((field) => (
+            <motion.li
+              key={field.key}
+              variants={{
+                hidden: { opacity: 0, y: 12 },
+                visible: {
+                  opacity: 1,
+                  y: 0,
+                  transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
+                },
+              }}
+            >
+              <StatCard
+                label={field.label}
+                icon={field.icon}
+                accent={field.accent}
+                value={report ? report.kpis[field.key] : '—'}
+              />
+            </motion.li>
+          ))}
         </motion.ul>
       </section>
 
@@ -121,13 +117,13 @@ function AdminDashboard() {
         aria-label="Workforce analytics"
       >
         <div className="col-span-5 max-[1100px]:col-span-1">
-          <EmployeeGrowthChart delay={0.45} />
+          <EmployeeGrowthChart data={report?.employeeGrowth ?? []} delay={0.45} />
         </div>
         <div className="col-span-4 max-[1100px]:col-span-1">
-          <DepartmentHeadcountChart delay={0.5} />
+          <DepartmentHeadcountChart data={report?.departmentHeadcount ?? []} delay={0.5} />
         </div>
         <div className="col-span-3 max-[1100px]:col-span-1">
-          <EmployeeStatusChart delay={0.55} />
+          <EmployeeStatusChart data={report?.employeeStatus ?? []} delay={0.55} />
         </div>
       </section>
 
@@ -138,8 +134,8 @@ function AdminDashboard() {
         className="mt-4 grid grid-cols-2 gap-4 max-[900px]:grid-cols-1"
         aria-label="Time and attendance"
       >
-        <AttendanceTrendChart delay={0.6} />
-        <LeaveTypesChart delay={0.65} />
+        <AttendanceTrendChart data={report?.attendanceTrend ?? []} delay={0.6} />
+        <LeaveTypesChart data={report?.leaveTypes ?? []} delay={0.65} />
       </section>
 
       {/* Operations row — leave queue is the primary action for the admin
@@ -153,7 +149,7 @@ function AdminDashboard() {
         <div className="col-span-2 max-[1100px]:col-span-1">
           <PendingLeaveRequestsTable delay={0.7} />
         </div>
-        <UpcomingEventsList delay={0.75} />
+        <UpcomingLeaveList delay={0.75} />
       </section>
 
       {/* People + audit row — recent hires for context, audit feed for
