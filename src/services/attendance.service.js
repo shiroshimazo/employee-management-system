@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase.js'
 import { writeLog } from './audit.service.js'
+import { getAttendancePolicy } from './settings.service.js'
 
 /**
  * attendance.service — daily clock-in/out ledger backed by `public.attendance`.
@@ -18,10 +19,11 @@ import { writeLog } from './audit.service.js'
  *                 punches (via attendance_insert_self / _update_self);
  *                 cannot delete (admin/HR only).
  *
- * Late cutoff:
- *   Hardcoded at 09:00 local time. If you want this configurable, lift to a
- *   `settings` row keyed by org / tenant; for now it's a constant so the
- *   "late" tag has a single, obvious source of truth.
+ * Attendance policy:
+ *   The late cut-off, half-day threshold, and working days come from
+ *   org_settings via settings.service#getAttendancePolicy(), which falls back
+ *   to sensible defaults (09:00 / 4h / Mon–Fri) when the settings row or its
+ *   policy columns aren't present — so this service works before the migration.
  *
  * Validation guarantees enforced here:
  *   - cannot clock in twice on the same day
@@ -31,10 +33,6 @@ import { writeLog } from './audit.service.js'
  *   - if today's leave_request is approved, today's punch defaults to 'leave'
  */
 
-// ── Constants ───────────────────────────────────────────────────────────────
-
-const LATE_CUTOFF_MINUTES = 9 * 60 // 09:00 local
-const HALF_DAY_HOURS = 4 // < 4 logged hours auto-tags half_day on clock-out
 
 // ── Query shaping ───────────────────────────────────────────────────────────
 
@@ -209,9 +207,15 @@ export async function getTodayAttendance(employeeId) {
  * (active employees the caller can see, minus everyone who has a
  * non-absent record today). RLS scopes both queries — admin/HR see
  * the org total; managers see their team-scoped total.
+ *
+ * On a non-working day (per the org's working_days policy) we don't derive
+ * absences — otherwise a weekend would read as everyone-absent. We return
+ * `absent: 0` and a `nonWorkingDay: true` flag the UI can surface.
  */
 export async function getTodayAttendanceSummary() {
   const today = todayLocalISO()
+  const { workingDays } = await getAttendancePolicy()
+  const isWorkingDay = workingDays.includes(new Date().getDay())
 
   const [{ data: rows, error: attErr }, { count: activeEmp, error: empErr }] = await Promise.all([
     supabase
@@ -234,10 +238,11 @@ export async function getTodayAttendanceSummary() {
   }
   // "Absent" = active employees who have no record today. We count missing
   // records rather than rows tagged 'absent' so a quiet morning still
-  // surfaces correctly.
-  tally.absent = Math.max(0, (activeEmp ?? 0) - seen.size)
+  // surfaces correctly — but only on working days, so weekends don't read
+  // as everyone-absent.
+  tally.absent = isWorkingDay ? Math.max(0, (activeEmp ?? 0) - seen.size) : 0
 
-  return { ...tally, total: activeEmp ?? 0 }
+  return { ...tally, total: activeEmp ?? 0, nonWorkingDay: !isWorkingDay }
 }
 
 /**
@@ -298,10 +303,10 @@ async function hasApprovedLeaveOn(employeeId, date) {
   return (data?.length ?? 0) > 0
 }
 
-function statusForCheckInTime(checkInISO) {
+function statusForCheckInTime(checkInISO, lateCutoffMinutes) {
   const d = new Date(checkInISO)
   const minutesOfDay = d.getHours() * 60 + d.getMinutes()
-  return minutesOfDay > LATE_CUTOFF_MINUTES ? 'late' : 'present'
+  return minutesOfDay > lateCutoffMinutes ? 'late' : 'present'
 }
 
 /**
@@ -319,6 +324,7 @@ export async function clockIn(employeeId) {
   if (!employeeId) throw new Error('clockIn requires employeeId.')
   const date = todayLocalISO()
   const nowISO = new Date().toISOString()
+  const policy = await getAttendancePolicy()
 
   // Approved-leave path: short-circuit. If the day is on leave, we still
   // record a row so the table reads cleanly, but with no clock_in/out.
@@ -332,7 +338,7 @@ export async function clockIn(employeeId) {
     throw new Error('You have already clocked in today.')
   }
 
-  const status = onLeave ? 'leave' : statusForCheckInTime(nowISO)
+  const status = onLeave ? 'leave' : statusForCheckInTime(nowISO, policy.lateCutoffMinutes)
   const payload = onLeave
     ? { employee_id: employeeId, date, check_in: null, status: 'leave' }
     : { employee_id: employeeId, date, check_in: nowISO, status }
@@ -393,10 +399,11 @@ export async function clockOut(employeeId) {
     throw new Error('Clock-out time must be after clock-in time.')
   }
 
+  const { halfDayHours } = await getAttendancePolicy()
   const hours = computeTotalHours(existing.check_in, nowISO) ?? 0
   // Promote present → half_day when applicable; leave 'late' alone.
   const status =
-    existing.status === 'present' && hours < HALF_DAY_HOURS ? 'half_day' : existing.status
+    existing.status === 'present' && hours < halfDayHours ? 'half_day' : existing.status
 
   const row = unwrap(
     await supabase

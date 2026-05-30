@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase.js'
 import { writeLog } from './audit.service.js'
+import { getLeavePolicy } from './settings.service.js'
 
 /**
  * leave.service — CRUD + workflow for the leave_requests table.
@@ -87,6 +88,19 @@ function diffInclusiveDays(startISO, endISO) {
   const a = new Date(startISO).getTime()
   const b = new Date(endISO).getTime()
   return Math.max(1, Math.round((b - a) / ms) + 1)
+}
+
+// Whole days from today (local midnight) until a 'YYYY-MM-DD' date. We build
+// both dates at local midnight rather than `new Date('YYYY-MM-DD')` (which is
+// UTC and can land a day off) so the notice check matches the calendar the
+// employee sees. Negative if the date is in the past.
+function noticeDaysUntil(startISO) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(startISO ?? '')
+  if (!m) return 0
+  const start = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  return Math.round((start - today) / (1000 * 60 * 60 * 24))
 }
 
 // ── Reads ───────────────────────────────────────────────────────────────────
@@ -184,10 +198,26 @@ function validateLeaveInput(input) {
 export async function createLeaveRequest(input) {
   validateLeaveInput(input)
 
+  // Enforce the org leave policy (min notice / max length). Both default to 0
+  // = no restriction, and the policy read never throws, so this is a no-op
+  // until an admin sets limits in Settings.
+  const policy = await getLeavePolicy()
+  const requestedDays = input.days ?? diffInclusiveDays(input.start_date, input.end_date)
+  if (policy.minNoticeDays > 0 && noticeDaysUntil(input.start_date) < policy.minNoticeDays) {
+    throw new Error(
+      `Leave must be requested at least ${policy.minNoticeDays} day${policy.minNoticeDays === 1 ? '' : 's'} in advance.`,
+    )
+  }
+  if (policy.maxConsecutiveDays > 0 && requestedDays > policy.maxConsecutiveDays) {
+    throw new Error(
+      `Leave cannot exceed ${policy.maxConsecutiveDays} consecutive day${policy.maxConsecutiveDays === 1 ? '' : 's'}.`,
+    )
+  }
+
   const payload = pickWritable({
     ...input,
     status: 'pending',
-    days: input.days ?? diffInclusiveDays(input.start_date, input.end_date),
+    days: requestedDays,
     reason: String(input.reason).trim(),
   })
   if (!payload.employee_id) {
