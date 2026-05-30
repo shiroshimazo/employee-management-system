@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { useAuth } from '../hooks/useAuth.js'
 import Sidebar from '../components/common/Sidebar/Sidebar.jsx'
 import { fadeDown } from '../lib/motion.js'
+import { homePathForRole } from '../utils/roleUtils.js'
 
 /**
  * AdminLayout — shell for every page under /admin/*.
@@ -15,7 +16,7 @@ import { fadeDown } from '../lib/motion.js'
  * handles the loading flicker, so we trust `loading` to gate this.
  */
 function AdminLayout({ children }) {
-  const { user, loading } = useAuth()
+  const { user, profile, loading } = useAuth()
 
   useEffect(() => {
     if (!loading && !user) {
@@ -31,7 +32,13 @@ function AdminLayout({ children }) {
     )
   }
 
-  const activePath = window.location.pathname.toLowerCase()
+  // After login, LoginPage lands the user on bare '/', where App.jsx renders
+  // their role's home without changing the URL. The sidebar highlights by
+  // matching the URL against each item's href (Dashboard is an exact match),
+  // so '/' would match nothing and leave no item active. Resolve '/' to the
+  // role's actual home path so the Dashboard item lights up like any other.
+  const rawPath = window.location.pathname.toLowerCase()
+  const activePath = rawPath === '/' ? homePathForRole(profile?.role) : rawPath
 
   return (
     <div className="flex min-h-dvh bg-[#F1F3F5] [font-family:'Geist',sans-serif] text-[#0F1419]">
