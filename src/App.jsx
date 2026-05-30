@@ -11,6 +11,7 @@ import UserListPage from './pages/admin/UserManagement/UserListPage.jsx'
 import AdminReports from './pages/admin/Reports/AdminReports.jsx'
 import AuditLog from './pages/admin/Settings/AuditLog.jsx'
 import SecuritySettings from './pages/admin/Settings/SecuritySettings.jsx'
+import SystemSettings from './pages/admin/Settings/SystemSettings.jsx'
 import MyDashboardPage from './pages/employee/Dashboard/MyDashboardPage.jsx'
 import MyAttendancePage from './pages/employee/Attendance/MyAttendancePage.jsx'
 import MyLeavePage from './pages/employee/Leave/MyLeavePage.jsx'
@@ -116,6 +117,9 @@ function App() {
     }
     if (currentPath.startsWith('/admin/security')) {
       return <SecuritySettings />
+    }
+    if (currentPath.startsWith('/admin/settings')) {
+      return <SystemSettings />
     }
     return <AdminDashboard />
   }
