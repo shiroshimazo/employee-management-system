@@ -28,6 +28,9 @@ export function canAccessTeam(role) {
  * which every authenticated user can see — a safe least-privilege default.
  */
 export function homePathForRole(role) {
+  // HR has its own people-ops home; admin keeps the back-office dashboard.
+  // (Both can reach each other's areas — this is just where each *lands*.)
+  if (role === 'hr') return '/hr'
   if (canAccessAdmin(role)) return '/admin'
   if (canAccessTeam(role)) return '/team/leave'
   return '/employee'

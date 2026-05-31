@@ -57,6 +57,17 @@ const SECTIONS = [
     ],
   },
   {
+    title: 'People',
+    // HR's own module — admin can reach it too. Sits alongside Workspace
+    // rather than replacing it: HR still manages records via the admin pages,
+    // this adds the directory + 360 record view.
+    roles: ['admin', 'hr'],
+    items: [
+      { label: 'HR Dashboard', href: '/hr', icon: LayoutDashboard, exact: true },
+      { label: 'Directory', href: '/hr/directory', icon: Users },
+    ],
+  },
+  {
     title: 'Personal',
     // HR / managers / payroll / employees see their own self-service — they're
     // staff too. Admin is treated as a pure back-office role here, so it's
@@ -80,7 +91,9 @@ const SECTIONS = [
       { label: 'Users', href: '/admin/users', icon: UserCog, roles: ['admin'] },
       { label: 'Audit Log', href: '/admin/audit', icon: ScrollText },
       { label: 'Security', href: '/admin/security', icon: ShieldCheck },
-      { label: 'Settings', href: '/admin/settings', icon: SettingsIcon },
+      // Settings writes are admin-only by RLS (org_settings_update_admin uses
+      // is_admin()), so HR would only hit a save error — admin-only like Users.
+      { label: 'Settings', href: '/admin/settings', icon: SettingsIcon, roles: ['admin'] },
     ],
   },
 ]

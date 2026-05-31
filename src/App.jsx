@@ -12,6 +12,9 @@ import AdminReports from './pages/admin/Reports/AdminReports.jsx'
 import AuditLog from './pages/admin/Settings/AuditLog.jsx'
 import SecuritySettings from './pages/admin/Settings/SecuritySettings.jsx'
 import SystemSettings from './pages/admin/Settings/SystemSettings.jsx'
+import HRDashboard from './pages/hr/Dashboard/HRDashboard.jsx'
+import EmployeeDirectory from './pages/hr/EmployeeRecords/EmployeeDirectory.jsx'
+import EmployeeDetail from './pages/hr/EmployeeRecords/EmployeeDetail.jsx'
 import MyDashboardPage from './pages/employee/Dashboard/MyDashboardPage.jsx'
 import MyAttendancePage from './pages/employee/Attendance/MyAttendancePage.jsx'
 import MyLeavePage from './pages/employee/Leave/MyLeavePage.jsx'
@@ -89,6 +92,20 @@ function App() {
     return <TeamLeavePage />
   }
 
+  // ── HR module (/hr/*) — admin + HR only ─────────────────────────────────
+  // Gated by canAccessAdmin (admin+hr). More-specific paths first so
+  // /hr/employee/<id> doesn't fall through to the dashboard.
+  if (currentPath.startsWith('/hr')) {
+    if (!canAccessAdmin(role)) return <ForbiddenPage />
+    if (currentPath.startsWith('/hr/employee')) {
+      return <EmployeeDetail />
+    }
+    if (currentPath.startsWith('/hr/directory')) {
+      return <EmployeeDirectory />
+    }
+    return <HRDashboard />
+  }
+
   // ── Admin workspace (/admin/*) — admin + HR only ────────────────────────
   // The single role gate guards the whole tree, including the /admin
   // catch-all, so an employee can't reach any back-office page by URL.
@@ -129,6 +146,7 @@ function App() {
   // lands. Render the highest-privilege home their role actually has instead
   // of defaulting everyone to the admin dashboard. No router here, so we
   // render the home page directly rather than navigating.
+  if (role === 'hr') return <HRDashboard />
   if (canAccessAdmin(role)) return <AdminDashboard />
   if (canAccessTeam(role)) return <TeamLeavePage />
   return <MyDashboardPage />
