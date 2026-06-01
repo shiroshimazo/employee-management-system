@@ -262,3 +262,59 @@ export async function getReportData() {
     attendanceTrend: buildAttendanceTrend(attendanceRows, days7, totalActive),
   }
 }
+
+// Headcount at a given month-end: hired on/before the cutoff and not yet
+// terminated by then. Same rule as buildEmployeeGrowth, extracted so the
+// turnover report can reuse it.
+function headcountAt(employees, cutoff) {
+  let total = 0
+  for (const e of employees) {
+    const startRaw = e.hire_date ?? e.created_at
+    if (!startRaw) continue
+    const start = new Date(startRaw)
+    if (Number.isNaN(start.getTime()) || start > cutoff) continue
+    if (e.termination_date) {
+      const end = new Date(e.termination_date)
+      if (!Number.isNaN(end.getTime()) && end <= cutoff) continue
+    }
+    total += 1
+  }
+  return total
+}
+
+/**
+ * getTurnoverData() — hires vs exits over the last 12 months, plus a simple
+ * turnover rate. Computed entirely from the employees table (hire_date /
+ * termination_date) — no new schema. RLS scopes the set to what the caller
+ * (admin/HR on the Reports page) may see.
+ *
+ * Returns:
+ *   {
+ *     months: [{ month, hires, exits, headcount }],
+ *     totalHires, totalExits,
+ *     currentHeadcount,
+ *     turnoverRate,  // % = totalExits / avg(start, end headcount) * 100
+ *   }
+ */
+export async function getTurnoverData() {
+  const months = lastNMonths(12)
+  const { data } = await getEmployees({ limit: 2000 })
+  const employees = data ?? []
+
+  const rows = months.map((m) => {
+    const hires = employees.filter((e) => monthKeyOf(e.hire_date) === m.key).length
+    const exits = employees.filter((e) => monthKeyOf(e.termination_date) === m.key).length
+    return { month: m.label, hires, exits, headcount: headcountAt(employees, m.lastDate) }
+  })
+
+  const totalHires = rows.reduce((s, r) => s + r.hires, 0)
+  const totalExits = rows.reduce((s, r) => s + r.exits, 0)
+  const currentHeadcount = rows.length ? rows[rows.length - 1].headcount : 0
+  const startHeadcount = rows.length ? rows[0].headcount : 0
+  // Average of the window's start and end headcount, the usual denominator for
+  // an annual turnover rate. Guard against divide-by-zero on an empty org.
+  const avg = (startHeadcount + currentHeadcount) / 2
+  const turnoverRate = avg > 0 ? Math.round((totalExits / avg) * 1000) / 10 : 0
+
+  return { months: rows, totalHires, totalExits, currentHeadcount, turnoverRate }
+}

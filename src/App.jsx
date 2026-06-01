@@ -21,6 +21,12 @@ import HolidayCalendar from './pages/hr/LeaveManagement/HolidayCalendar.jsx'
 import LeavePolicy from './pages/hr/LeaveManagement/LeavePolicy.jsx'
 import JobPostings from './pages/hr/Recruitment/JobPostings.jsx'
 import Applicants from './pages/hr/Recruitment/Applicants.jsx'
+import OnboardingChecklist from './pages/hr/Recruitment/OnboardingChecklist.jsx'
+import HRReports from './pages/hr/Reports/HRReports.jsx'
+import HeadcountReport from './pages/hr/Reports/HeadcountReport.jsx'
+import TurnoverReport from './pages/hr/Reports/TurnoverReport.jsx'
+import ContractManagement from './pages/hr/Compliance/ContractManagement.jsx'
+import TrainingRecords from './pages/hr/Compliance/TrainingRecords.jsx'
 import MyDashboardPage from './pages/employee/Dashboard/MyDashboardPage.jsx'
 import MyAttendancePage from './pages/employee/Attendance/MyAttendancePage.jsx'
 import MyLeavePage from './pages/employee/Leave/MyLeavePage.jsx'
@@ -127,6 +133,26 @@ function App() {
     }
     if (currentPath.startsWith('/hr/applicants')) {
       return <Applicants />
+    }
+    if (currentPath.startsWith('/hr/onboarding')) {
+      return <OnboardingChecklist />
+    }
+    // Reports deep-dives must be checked before /hr/reports, or its prefix
+    // match would swallow them.
+    if (currentPath.startsWith('/hr/reports/headcount')) {
+      return <HeadcountReport />
+    }
+    if (currentPath.startsWith('/hr/reports/turnover')) {
+      return <TurnoverReport />
+    }
+    if (currentPath.startsWith('/hr/reports')) {
+      return <HRReports />
+    }
+    if (currentPath.startsWith('/hr/contracts')) {
+      return <ContractManagement />
+    }
+    if (currentPath.startsWith('/hr/training')) {
+      return <TrainingRecords />
     }
     return <HRDashboard />
   }

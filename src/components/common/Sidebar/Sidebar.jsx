@@ -3,7 +3,10 @@ import {
   Building2,
   CalendarCheck,
   CalendarDays,
+  ClipboardList,
+  FileSignature,
   FileText,
+  GraduationCap,
   LayoutDashboard,
   LogOut,
   ScrollText,
@@ -75,6 +78,17 @@ const SECTIONS = [
       { label: 'Leave Policy', href: '/hr/leave-policy', icon: ScrollText },
       { label: 'Job Postings', href: '/hr/jobs', icon: Briefcase },
       { label: 'Applicants', href: '/hr/applicants', icon: UserSearch },
+      { label: 'Onboarding', href: '/hr/onboarding', icon: ClipboardList },
+      { label: 'Reports', href: '/hr/reports', icon: TrendingUp },
+    ],
+  },
+  {
+    title: 'Compliance',
+    // HR's compliance surfaces — contracts + training/certification tracking.
+    roles: ['admin', 'hr'],
+    items: [
+      { label: 'Contracts', href: '/hr/contracts', icon: FileSignature },
+      { label: 'Training', href: '/hr/training', icon: GraduationCap },
     ],
   },
   {
