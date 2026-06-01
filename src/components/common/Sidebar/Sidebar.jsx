@@ -68,6 +68,8 @@ const SECTIONS = [
       { label: 'HR Dashboard', href: '/hr', icon: LayoutDashboard, exact: true },
       { label: 'Directory', href: '/hr/directory', icon: Users },
       { label: 'Documents', href: '/hr/documents', icon: FileText },
+      { label: 'Leave Requests', href: '/hr/leave', icon: CalendarCheck, exact: true },
+      { label: 'Holidays', href: '/hr/holidays', icon: CalendarDays },
     ],
   },
   {
