@@ -38,7 +38,9 @@ import NavItem from './NavItem.jsx'
 const SECTIONS = [
   {
     title: 'Workspace',
-    roles: ['admin', 'hr'],
+    // Admin-only back-office. HR has its own People module instead of these
+    // admin management pages.
+    roles: ['admin'],
     items: [
       { label: 'Dashboard', href: '/admin', icon: LayoutDashboard, exact: true },
       { label: 'Employees', href: '/admin/employees', icon: Users },
@@ -65,6 +67,7 @@ const SECTIONS = [
     items: [
       { label: 'HR Dashboard', href: '/hr', icon: LayoutDashboard, exact: true },
       { label: 'Directory', href: '/hr/directory', icon: Users },
+      { label: 'Documents', href: '/hr/documents', icon: FileText },
     ],
   },
   {

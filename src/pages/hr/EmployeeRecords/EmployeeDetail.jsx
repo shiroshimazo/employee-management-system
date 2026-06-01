@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, FileText } from 'lucide-react'
 import AdminLayout from '../../../layouts/AdminLayout.jsx'
 import StatusBadge from '../../../components/common/StatusBadge.jsx'
 import { getEmployeeById } from '../../../services/employee.service.js'
 import { getAttendanceStats } from '../../../services/attendance.service.js'
 import { getLeaveRequestsByEmployee } from '../../../services/leave.service.js'
+import { getDocumentsByEmployee } from '../../../services/document.service.js'
 
 /**
  * EmployeeDetail — the 360 view of one employee, reached from the directory
@@ -62,6 +63,7 @@ function EmployeeDetail() {
   const [employee, setEmployee] = useState(null)
   const [stats, setStats] = useState(null)
   const [leave, setLeave] = useState([])
+  const [docs, setDocs] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [notFound, setNotFound] = useState(false)
@@ -77,14 +79,18 @@ function EmployeeDetail() {
         return
       }
       setEmployee(emp)
-      // Attendance stats + recent leave are scoped to this employee; fetch in
-      // parallel since neither depends on the other.
-      const [statsRes, leaveRes] = await Promise.all([
+      // Attendance stats + recent leave + documents are scoped to this
+      // employee; fetch in parallel since none depends on the others. Each
+      // catch falls back to empty so a missing 014 migration (documents) or a
+      // transient error doesn't blank the whole page.
+      const [statsRes, leaveRes, docsRes] = await Promise.all([
         getAttendanceStats({ employeeId: id }).catch(() => null),
         getLeaveRequestsByEmployee(id, { limit: 5 }).catch(() => ({ data: [] })),
+        getDocumentsByEmployee(id).catch(() => []),
       ])
       setStats(statsRes)
       setLeave(leaveRes?.data ?? [])
+      setDocs(docsRes ?? [])
     } catch (err) {
       setError(err?.message ?? 'Failed to load this employee.')
     } finally {
@@ -241,6 +247,61 @@ function EmployeeDetail() {
                       </span>
                     </div>
                     <StatusBadge value={lv.status} />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </motion.section>
+
+          {/* Documents */}
+          <motion.section
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+            className="mt-4 rounded-[16px] border border-slate-200 bg-white p-5 shadow-[0_8px_24px_rgba(15,20,25,0.04)]"
+            aria-label="Documents"
+          >
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <p className="m-0 text-[0.7rem] font-medium uppercase tracking-[0.12em] text-[#4A5568] [font-family:'Geist_Mono',monospace]">
+                Documents
+              </p>
+              <a
+                href="/hr/documents"
+                className="text-[0.75rem] font-medium text-[#2C5EF5] hover:text-[#1E47C9]"
+              >
+                Manage
+              </a>
+            </div>
+            {docs.length === 0 ? (
+              <p className="m-0 text-[0.85rem] text-[#4A5568]">No documents on record.</p>
+            ) : (
+              <ul className="m-0 flex flex-col gap-2 p-0">
+                {docs.map((d) => (
+                  <li
+                    key={d.id}
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-[10px] border border-slate-200 px-3 py-2"
+                  >
+                    <div className="flex min-w-0 items-center gap-2">
+                      <FileText size={15} strokeWidth={2} className="shrink-0 text-[#94A3B8]" aria-hidden="true" />
+                      {d.file_url ? (
+                        <a
+                          href={d.file_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="truncate text-[0.85rem] font-medium text-[#2C5EF5] hover:underline"
+                        >
+                          {d.title}
+                        </a>
+                      ) : (
+                        <span className="truncate text-[0.85rem] font-medium text-[#0F1419]">
+                          {d.title}
+                        </span>
+                      )}
+                      <StatusBadge value={d.doc_type} />
+                    </div>
+                    <span className="shrink-0 text-[0.75rem] text-[#94A3B8] [font-family:'Geist_Mono',monospace]">
+                      {formatDate(d.created_at)}
+                    </span>
                   </li>
                 ))}
               </ul>

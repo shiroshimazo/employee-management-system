@@ -15,6 +15,7 @@ import SystemSettings from './pages/admin/Settings/SystemSettings.jsx'
 import HRDashboard from './pages/hr/Dashboard/HRDashboard.jsx'
 import EmployeeDirectory from './pages/hr/EmployeeRecords/EmployeeDirectory.jsx'
 import EmployeeDetail from './pages/hr/EmployeeRecords/EmployeeDetail.jsx'
+import DocumentVault from './pages/hr/EmployeeRecords/DocumentVault.jsx'
 import MyDashboardPage from './pages/employee/Dashboard/MyDashboardPage.jsx'
 import MyAttendancePage from './pages/employee/Attendance/MyAttendancePage.jsx'
 import MyLeavePage from './pages/employee/Leave/MyLeavePage.jsx'
@@ -102,6 +103,9 @@ function App() {
     }
     if (currentPath.startsWith('/hr/directory')) {
       return <EmployeeDirectory />
+    }
+    if (currentPath.startsWith('/hr/documents')) {
+      return <DocumentVault />
     }
     return <HRDashboard />
   }
