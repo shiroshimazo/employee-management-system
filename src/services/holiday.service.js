@@ -5,7 +5,7 @@ import { writeLog } from './audit.service.js'
  * holiday.service — company holiday calendar (HR Leave Management panel).
  *
  * Backed by the holidays table (015_create_holidays.sql). Any authenticated
- * user can read; only admin/HR can add or remove (RLS is the gate — we don't
+ * user can read; only HR can add or remove (RLS is the gate — we don't
  * duplicate the check, Postgres errors surface verbatim).
  */
 
@@ -38,7 +38,7 @@ export async function getHolidays() {
 
 /**
  * createHoliday(input) — add a holiday. Requires name + holiday_date; RLS
- * also requires admin/HR. Writes a best-effort audit row.
+ * also requires HR. Writes a best-effort audit row.
  */
 export async function createHoliday(input) {
   const payload = pickWritable(input)
@@ -69,7 +69,7 @@ export async function createHoliday(input) {
 }
 
 /**
- * deleteHoliday(id) — admin/HR only (RLS). Writes a best-effort audit row.
+ * deleteHoliday(id) — HR only (RLS). Writes a best-effort audit row.
  */
 export async function deleteHoliday(id) {
   const { error } = await supabase.from('holidays').delete().eq('id', id)

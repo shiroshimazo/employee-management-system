@@ -25,15 +25,14 @@ import NavItem from './NavItem.jsx'
  * Sidebar — role-aware primary navigation.
  *
  * Sections (and the roles that see them):
- *   - Workspace : admin · hr      → /admin/* CRUD pages
+ *   - Workspace : admin           → /admin/* system/back-office pages
  *   - Team      : manager         → /team/*  read-mostly views
+ *   - People    : hr              → /hr/*    people-ops pages
  *   - Personal  : everyone        → /me/*    self-service
- *   - System    : admin · hr      → audit / security / settings
+ *   - System    : admin           → audit / security / settings
  *
- * The role check mirrors the RLS policies in 007_rls_policies.sql, so what
- * the sidebar shows lines up with what the database will actually let the
- * caller do. Hiding a link doesn't gate access (the route still resolves);
- * the database is the source of truth — this is just navigation hygiene.
+ * Hiding a link doesn't gate access by itself; App.jsx has the matching route
+ * guards, and the database policies still protect the data layer.
  *
  * Active match:
  *   Dashboard uses exact match (/admin), everything else uses prefix so a
@@ -65,10 +64,9 @@ const SECTIONS = [
   },
   {
     title: 'People',
-    // HR's own module — admin can reach it too. Sits alongside Workspace
-    // rather than replacing it: HR still manages records via the admin pages,
-    // this adds the directory + 360 record view.
-    roles: ['admin', 'hr'],
+    // HR's own module. Admin users keep system/back-office navigation separate
+    // from confidential HR workflows.
+    roles: ['hr'],
     items: [
       { label: 'HR Dashboard', href: '/hr', icon: LayoutDashboard, exact: true },
       { label: 'Directory', href: '/hr/directory', icon: Users },
@@ -85,7 +83,7 @@ const SECTIONS = [
   {
     title: 'Compliance',
     // HR's compliance surfaces — contracts + training/certification tracking.
-    roles: ['admin', 'hr'],
+    roles: ['hr'],
     items: [
       { label: 'Contracts', href: '/hr/contracts', icon: FileSignature },
       { label: 'Training', href: '/hr/training', icon: GraduationCap },
@@ -108,15 +106,11 @@ const SECTIONS = [
   },
   {
     title: 'System',
-    roles: ['admin', 'hr'],
+    roles: ['admin'],
     items: [
-      // Users is admin-only — changing roles is gated to admin by RLS, so HR
-      // shouldn't see a link that would just fail at the database.
       { label: 'Users', href: '/admin/users', icon: UserCog, roles: ['admin'] },
       { label: 'Audit Log', href: '/admin/audit', icon: ScrollText },
       { label: 'Security', href: '/admin/security', icon: ShieldCheck },
-      // Settings writes are admin-only by RLS (org_settings_update_admin uses
-      // is_admin()), so HR would only hit a save error — admin-only like Users.
       { label: 'Settings', href: '/admin/settings', icon: SettingsIcon, roles: ['admin'] },
     ],
   },
@@ -146,9 +140,8 @@ function Sidebar({ activePath }) {
 
   const visibleSections = SECTIONS.filter((s) => s.roles.includes(role))
 
-  // An item may narrow its section's roles further (e.g. Users is admin-only
-  // inside an admin+hr section). Default to the section's audience when an
-  // item doesn't specify its own.
+  // An item may narrow its section's roles further. Default to the section's
+  // audience when an item doesn't specify its own.
   const itemVisible = (item) => !item.roles || item.roles.includes(role)
 
   const handleSignOut = async () => {

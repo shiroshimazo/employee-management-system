@@ -17,7 +17,7 @@ import { getEmployees } from '../../../services/employee.service.js'
 /**
  * ContractManagement — employment contracts per employee (HR Compliance).
  *
- * Backed by contract.service / the employee_contracts table. Admin/HR manage;
+ * Backed by contract.service / the employee_contracts table. HR manages;
  * everyone's own is readable. If the 020 migration hasn't been run, the table
  * is absent — we detect that and show a hint instead of a broken page.
  */

@@ -15,7 +15,7 @@ import { getJobPostings } from '../../../services/jobPosting.service.js'
 /**
  * Applicants — candidates in the hiring pipeline (HR Recruitment panel).
  *
- * Backed by applicant.service / the applicants table (admin/HR only). If the
+ * Backed by applicant.service / the applicants table (HR only). If the
  * 018 migration hasn't been run, the table is absent — we detect that and show
  * a hint instead of a broken page.
  *

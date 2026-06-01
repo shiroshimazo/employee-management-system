@@ -5,7 +5,7 @@ import { writeLog } from './audit.service.js'
  * jobPosting.service — open roles for the HR Recruitment panel.
  *
  * Backed by job_postings (017_create_job_postings.sql). Any authenticated
- * user can read; only admin/HR can write (RLS is the gate — we don't duplicate
+ * user can read; only HR can write (RLS is the gate — we don't duplicate
  * the check, Postgres errors surface verbatim).
  */
 
@@ -62,7 +62,7 @@ export async function getJobPostings({ status } = {}) {
 }
 
 /**
- * createJobPosting(input) — RLS requires admin/HR. Coerces a blank
+ * createJobPosting(input) — RLS requires HR. Coerces a blank
  * department_id to null (Postgres rejects '' on a uuid column). Audits.
  */
 export async function createJobPosting(input) {
@@ -117,7 +117,7 @@ export async function updateJobPosting(id, patch) {
 }
 
 /**
- * deleteJobPosting(id) — admin/HR only (RLS). Applicants.job_posting_id is
+ * deleteJobPosting(id) — HR only (RLS). Applicants.job_posting_id is
  * ON DELETE SET NULL, so removing a posting leaves its applicants in place.
  */
 export async function deleteJobPosting(id) {

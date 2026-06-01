@@ -4,7 +4,7 @@ import { writeLog } from './audit.service.js'
 /**
  * applicant.service — candidates in the hiring pipeline (HR Recruitment).
  *
- * Backed by applicants (018_create_applicants.sql). Admin/HR only for every
+ * Backed by applicants (018_create_applicants.sql). HR only for every
  * operation (RLS is the gate — applicants are external candidates, not staff).
  *
  * Marking stage = 'hired' here does NOT create an employee/auth record — the
@@ -70,7 +70,7 @@ export async function getApplicants({ jobPostingId, stage } = {}) {
 }
 
 /**
- * createApplicant(input) — RLS requires admin/HR. Coerces a blank
+ * createApplicant(input) — RLS requires HR. Coerces a blank
  * job_posting_id to null (Postgres rejects '' on a uuid column). Audits.
  */
 export async function createApplicant(input) {
@@ -124,7 +124,7 @@ export async function updateApplicantStage(id, stage) {
 }
 
 /**
- * deleteApplicant(id) — admin/HR only (RLS). Audits.
+ * deleteApplicant(id) — HR only (RLS). Audits.
  */
 export async function deleteApplicant(id) {
   const { error } = await supabase.from('applicants').delete().eq('id', id)

@@ -5,7 +5,7 @@ import { writeLog } from './audit.service.js'
  * leavePolicy.service — annual leave allowances per type (HR Leave Management).
  *
  * Backed by leave_policies (016_create_leave_policies.sql), one row per leave
- * type. Any authenticated user can read; only admin/HR can update (RLS is the
+ * type. Any authenticated user can read; only HR can update (RLS is the
  * gate). This is the org-level allowance only — per-employee balances are a
  * separate feature; per-request rules (notice/length) live in settings.service.
  */

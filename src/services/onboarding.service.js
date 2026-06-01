@@ -4,8 +4,8 @@ import { writeLog } from './audit.service.js'
 /**
  * onboarding.service — per-employee onboarding checklists (HR Recruitment).
  *
- * Backed by onboarding_tasks (019_create_onboarding_tasks.sql). Admin/HR add,
- * check off, and remove tasks; an employee may read their own (RLS is the
+ * Backed by onboarding_tasks (019_create_onboarding_tasks.sql). HR adds,
+ * checks off, and removes tasks; an employee may read their own (RLS is the
  * gate — we don't duplicate the check, Postgres errors surface verbatim).
  */
 
@@ -43,7 +43,7 @@ export async function getOnboardingTasks(employeeId) {
 
 /**
  * createTask(input) — add a task for an employee. Requires employee_id + task;
- * RLS also requires admin/HR. Audits.
+ * RLS also requires HR. Audits.
  */
 export async function createTask(input) {
   const payload = pickWritable(input)
@@ -91,7 +91,7 @@ export async function setTaskDone(id, done) {
 }
 
 /**
- * deleteTask(id) — admin/HR only (RLS). Audits.
+ * deleteTask(id) — HR only (RLS). Audits.
  */
 export async function deleteTask(id) {
   const { error } = await supabase.from('onboarding_tasks').delete().eq('id', id)

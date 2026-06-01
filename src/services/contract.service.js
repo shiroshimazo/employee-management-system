@@ -4,8 +4,8 @@ import { writeLog } from './audit.service.js'
 /**
  * contract.service — employment contracts per employee (HR Compliance).
  *
- * Backed by employee_contracts (020_create_employee_contracts.sql). Admin/HR
- * manage; an employee may read their own (RLS is the gate — we don't duplicate
+ * Backed by employee_contracts (020_create_employee_contracts.sql). HR manages;
+ * an employee may read their own (RLS is the gate — we don't duplicate
  * the check, Postgres errors surface verbatim).
  */
 
@@ -82,7 +82,7 @@ export async function getContracts({ status, contractType } = {}) {
 }
 
 /**
- * createContract(input) — RLS requires admin/HR. Blank dates → null (Postgres
+ * createContract(input) — RLS requires HR. Blank dates → null (Postgres
  * rejects '' on a date column). Audits.
  */
 export async function createContract(input) {
@@ -136,7 +136,7 @@ export async function updateContract(id, patch) {
 }
 
 /**
- * deleteContract(id) — admin/HR only (RLS). Audits.
+ * deleteContract(id) — HR only (RLS). Audits.
  */
 export async function deleteContract(id) {
   const { error } = await supabase.from('employee_contracts').delete().eq('id', id)

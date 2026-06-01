@@ -8,9 +8,8 @@ import { writeLog } from './audit.service.js'
  * are URL references (file_url), matching the app's avatar_url / attachment_url
  * pattern — not uploaded bytes.
  *
- * Auth model (RLS in 014): admin/HR manage all documents; an employee may read
- * their own. We don't duplicate that check here — Postgres errors surface
- * verbatim.
+ * Auth model (RLS in 022): HR manages documents; an employee may read their
+ * own. We don't duplicate that check here — Postgres errors surface verbatim.
  */
 
 // The doc_type vocabulary — must match the CHECK constraint in 014. Exported
@@ -88,7 +87,7 @@ export async function getAllDocuments({ docType } = {}) {
 
 /**
  * createDocument(input) — file a document against an employee. Sets
- * uploaded_by from the session (RLS also requires admin/HR). Writes a
+ * uploaded_by from the session (RLS also requires HR). Writes a
  * best-effort audit row.
  */
 export async function createDocument(input) {
@@ -121,7 +120,7 @@ export async function createDocument(input) {
 }
 
 /**
- * deleteDocument(id) — admin/HR only (RLS). Writes a best-effort audit row.
+ * deleteDocument(id) — HR only (RLS). Writes a best-effort audit row.
  */
 export async function deleteDocument(id) {
   const { error } = await supabase.from('employee_documents').delete().eq('id', id)

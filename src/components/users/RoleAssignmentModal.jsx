@@ -28,8 +28,8 @@ const ROLE_LABELS = {
 }
 
 const ROLE_HINTS = {
-  admin: 'Full access — manage users, all HR data, and system settings.',
-  hr: 'Manage employees, departments, leave, and attendance.',
+  admin: 'Manage users, system settings, and back-office pages.',
+  hr: 'Manage HR records, leave workflows, recruitment, and compliance.',
   manager: 'View and approve their team’s leave and attendance.',
   payroll: 'Access payroll runs, compensation, and tax settings.',
   employee: 'Self-service only — their own attendance, leave, and profile.',
@@ -151,8 +151,8 @@ function RoleAssignmentModal({ open, onClose, user, currentUserId, onConfirm }) 
             <AlertTriangle size={15} strokeWidth={2.25} />
           </span>
           <p className="m-0 text-[0.8rem] text-[#0F1419]">
-            Admins have full access to every user and all system settings. Only
-            grant this to people who need it.
+            Admins can manage users and system settings. Only grant this to
+            people who need that responsibility.
           </p>
         </div>
       ) : null}

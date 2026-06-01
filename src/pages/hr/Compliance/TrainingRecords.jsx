@@ -16,7 +16,7 @@ import { getEmployees } from '../../../services/employee.service.js'
 /**
  * TrainingRecords — employee training / certification log (HR Compliance).
  *
- * Backed by training.service / the training_records table. Admin/HR manage;
+ * Backed by training.service / the training_records table. HR manages;
  * everyone's own is readable. If the 021 migration hasn't been run, the table
  * is absent — we detect that and show a hint instead of a broken page.
  */

@@ -36,7 +36,7 @@ import TeamLeavePage from './pages/team/TeamLeavePage.jsx'
 import TeamAttendancePage from './pages/team/TeamAttendancePage.jsx'
 import ForbiddenPage from './pages/errors/ForbiddenPage.jsx'
 import { useAuth } from './hooks/useAuth.js'
-import { canAccessAdmin, canAccessTeam } from './utils/roleUtils.js'
+import { canAccessAdmin, canAccessHR, canAccessTeam } from './utils/roleUtils.js'
 
 function LoadingScreen() {
   return (
@@ -104,11 +104,11 @@ function App() {
     return <TeamLeavePage />
   }
 
-  // ── HR module (/hr/*) — admin + HR only ─────────────────────────────────
-  // Gated by canAccessAdmin (admin+hr). More-specific paths first so
-  // /hr/employee/<id> doesn't fall through to the dashboard.
+  // ── HR module (/hr/*) — HR only ─────────────────────────────────────────
+  // More-specific paths first so /hr/employee/<id> doesn't fall through to
+  // the dashboard.
   if (currentPath.startsWith('/hr')) {
-    if (!canAccessAdmin(role)) return <ForbiddenPage />
+    if (!canAccessHR(role)) return <ForbiddenPage />
     if (currentPath.startsWith('/hr/employee')) {
       return <EmployeeDetail />
     }
@@ -157,7 +157,7 @@ function App() {
     return <HRDashboard />
   }
 
-  // ── Admin workspace (/admin/*) — admin + HR only ────────────────────────
+  // ── Admin workspace (/admin/*) — admin only ─────────────────────────────
   // The single role gate guards the whole tree, including the /admin
   // catch-all, so an employee can't reach any back-office page by URL.
   if (currentPath.startsWith('/admin')) {

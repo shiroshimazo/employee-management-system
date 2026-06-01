@@ -4,8 +4,8 @@ import { writeLog } from './audit.service.js'
 /**
  * training.service — employee training / certification records (HR Compliance).
  *
- * Backed by training_records (021_create_training_records.sql). Admin/HR
- * manage; an employee may read their own (RLS is the gate — we don't duplicate
+ * Backed by training_records (021_create_training_records.sql). HR manages;
+ * an employee may read their own (RLS is the gate — we don't duplicate
  * the check, Postgres errors surface verbatim).
  */
 
@@ -74,7 +74,7 @@ export async function getTrainingRecords({ status } = {}) {
 }
 
 /**
- * createTrainingRecord(input) — RLS requires admin/HR. Blank dates → null
+ * createTrainingRecord(input) — RLS requires HR. Blank dates → null
  * (Postgres rejects '' on a date column). Audits.
  */
 export async function createTrainingRecord(input) {
@@ -132,7 +132,7 @@ export async function updateTrainingRecord(id, patch) {
 }
 
 /**
- * deleteTrainingRecord(id) — admin/HR only (RLS). Audits.
+ * deleteTrainingRecord(id) — HR only (RLS). Audits.
  */
 export async function deleteTrainingRecord(id) {
   const { error } = await supabase.from('training_records').delete().eq('id', id)
