@@ -18,6 +18,8 @@ import EmployeeDetail from './pages/hr/EmployeeRecords/EmployeeDetail.jsx'
 import DocumentVault from './pages/hr/EmployeeRecords/DocumentVault.jsx'
 import LeaveRequests from './pages/hr/LeaveManagement/LeaveRequests.jsx'
 import HolidayCalendar from './pages/hr/LeaveManagement/HolidayCalendar.jsx'
+import LeavePolicy from './pages/hr/LeaveManagement/LeavePolicy.jsx'
+import JobPostings from './pages/hr/Recruitment/JobPostings.jsx'
 import MyDashboardPage from './pages/employee/Dashboard/MyDashboardPage.jsx'
 import MyAttendancePage from './pages/employee/Attendance/MyAttendancePage.jsx'
 import MyLeavePage from './pages/employee/Leave/MyLeavePage.jsx'
@@ -109,12 +111,18 @@ function App() {
     if (currentPath.startsWith('/hr/documents')) {
       return <DocumentVault />
     }
+    if (currentPath.startsWith('/hr/leave-policy')) {
+      return <LeavePolicy />
+    }
     // Exact match (not prefix) so it can't swallow /hr/leave-policy.
     if (currentPath === '/hr/leave') {
       return <LeaveRequests />
     }
     if (currentPath.startsWith('/hr/holidays')) {
       return <HolidayCalendar />
+    }
+    if (currentPath.startsWith('/hr/jobs')) {
+      return <JobPostings />
     }
     return <HRDashboard />
   }

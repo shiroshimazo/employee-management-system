@@ -1,4 +1,5 @@
 import {
+  Briefcase,
   Building2,
   CalendarCheck,
   CalendarDays,
@@ -70,6 +71,8 @@ const SECTIONS = [
       { label: 'Documents', href: '/hr/documents', icon: FileText },
       { label: 'Leave Requests', href: '/hr/leave', icon: CalendarCheck, exact: true },
       { label: 'Holidays', href: '/hr/holidays', icon: CalendarDays },
+      { label: 'Leave Policy', href: '/hr/leave-policy', icon: ScrollText },
+      { label: 'Job Postings', href: '/hr/jobs', icon: Briefcase },
     ],
   },
   {
