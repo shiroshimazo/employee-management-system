@@ -20,6 +20,7 @@ import LeaveRequests from './pages/hr/LeaveManagement/LeaveRequests.jsx'
 import HolidayCalendar from './pages/hr/LeaveManagement/HolidayCalendar.jsx'
 import LeavePolicy from './pages/hr/LeaveManagement/LeavePolicy.jsx'
 import JobPostings from './pages/hr/Recruitment/JobPostings.jsx'
+import Applicants from './pages/hr/Recruitment/Applicants.jsx'
 import MyDashboardPage from './pages/employee/Dashboard/MyDashboardPage.jsx'
 import MyAttendancePage from './pages/employee/Attendance/MyAttendancePage.jsx'
 import MyLeavePage from './pages/employee/Leave/MyLeavePage.jsx'
@@ -123,6 +124,9 @@ function App() {
     }
     if (currentPath.startsWith('/hr/jobs')) {
       return <JobPostings />
+    }
+    if (currentPath.startsWith('/hr/applicants')) {
+      return <Applicants />
     }
     return <HRDashboard />
   }

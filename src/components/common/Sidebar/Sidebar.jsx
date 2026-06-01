@@ -12,6 +12,7 @@ import {
   TrendingUp,
   UserCircle,
   UserCog,
+  UserSearch,
   Users,
 } from 'lucide-react'
 import { useAuth } from '../../../hooks/useAuth.js'
@@ -73,6 +74,7 @@ const SECTIONS = [
       { label: 'Holidays', href: '/hr/holidays', icon: CalendarDays },
       { label: 'Leave Policy', href: '/hr/leave-policy', icon: ScrollText },
       { label: 'Job Postings', href: '/hr/jobs', icon: Briefcase },
+      { label: 'Applicants', href: '/hr/applicants', icon: UserSearch },
     ],
   },
   {
