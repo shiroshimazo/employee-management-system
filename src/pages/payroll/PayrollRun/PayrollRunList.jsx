@@ -8,6 +8,7 @@ import {
   PlayCircle,
   RefreshCw,
   ScrollText,
+  Send,
   Users,
   Wallet,
   X,
@@ -117,7 +118,8 @@ function getDefaultPeriod() {
 function PayrollRunList() {
   const [status, setStatus] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
-  const { runs, count, loading, error, refresh, createRun } = usePayrollRuns({ status })
+  const [reviewTarget, setReviewTarget] = useState(null)
+  const { runs, count, loading, error, refresh, createRun, submitForReview } = usePayrollRuns({ status })
 
   const statusCounts = useMemo(
     () =>
@@ -151,6 +153,12 @@ function PayrollRunList() {
     const created = await createRun(payload)
     if (status && status !== created.status) setStatus('')
     return created
+  }
+
+  async function handleSubmitForReview(runId) {
+    const submitted = await submitForReview(runId)
+    if (status && status !== submitted.status) setStatus('')
+    return submitted
   }
 
   return (
@@ -271,7 +279,7 @@ function PayrollRunList() {
           <table className="w-full min-w-[900px] border-collapse">
             <thead>
               <tr className="text-left">
-                {['Run', 'Period', 'Status', 'Employees', 'Salary snapshot', 'Created by', 'Created'].map((heading) => (
+                {['Run', 'Period', 'Status', 'Employees', 'Salary snapshot', 'Created by', 'Created', ''].map((heading) => (
                   <th
                     key={heading}
                     className="border-b border-slate-200 bg-slate-50/60 px-4 py-3 text-[0.65rem] font-medium uppercase tracking-[0.1em] text-[#4A5568] [font-family:'Geist_Mono',monospace]"
@@ -284,13 +292,13 @@ function PayrollRunList() {
             <tbody>
               {loading && runs.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-[0.85rem] text-[#4A5568]">
+                  <td colSpan={8} className="px-4 py-10 text-center text-[0.85rem] text-[#4A5568]">
                     <LoadingState label="Loading payroll runs" />
                   </td>
                 </tr>
               ) : runs.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center">
+                  <td colSpan={8} className="px-4 py-10 text-center">
                     <p className="m-0 text-[0.95rem] font-semibold text-[#0F1419]">
                       No payroll runs found.
                     </p>
@@ -330,6 +338,23 @@ function PayrollRunList() {
                     <td className="px-4 py-3 text-[0.85rem] text-[#4A5568]">
                       {formatTimestamp(run.createdAt)}
                     </td>
+                    <td className="px-4 py-3 text-right">
+                      {run.status === 'draft' ? (
+                        <button
+                          type="button"
+                          onClick={() => setReviewTarget(run)}
+                          aria-label={`Submit ${run.name} for review`}
+                          className="inline-flex h-8 items-center gap-1.5 rounded-[8px] px-2 text-[0.78rem] font-semibold text-[#4A5568] transition-colors hover:bg-slate-100 hover:text-[#0F1419] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2C5EF5]"
+                        >
+                          <Send size={13} strokeWidth={2.25} aria-hidden="true" />
+                          <span>Submit</span>
+                        </button>
+                      ) : (
+                        <span className="text-[0.72rem] text-[#94A3B8] [font-family:'Geist_Mono',monospace]">
+                          -
+                        </span>
+                      )}
+                    </td>
                   </tr>
                 ))
               )}
@@ -342,6 +367,13 @@ function PayrollRunList() {
         open={createOpen}
         onClose={() => setCreateOpen(false)}
         onSubmit={handleCreateRun}
+      />
+      <RunReviewModal
+        key={reviewTarget?.id ?? 'payroll-run-review'}
+        run={reviewTarget}
+        open={Boolean(reviewTarget)}
+        onClose={() => setReviewTarget(null)}
+        onSubmit={handleSubmitForReview}
       />
     </PayrollLayout>
   )
@@ -532,6 +564,94 @@ function RunCreateModal({ open, onClose, onSubmit }) {
             Period end must be on or after the start date.
           </p>
         ) : null}
+
+        {error ? (
+          <p className="m-0 rounded-[8px] bg-red-50 px-3 py-2 text-[0.8rem] text-red-700" role="alert">
+            {error}
+          </p>
+        ) : null}
+      </form>
+    </Modal>
+  )
+}
+
+function RunReviewModal({ run, open, onClose, onSubmit }) {
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState(null)
+
+  if (!run) return null
+
+  async function handleSubmit(event) {
+    event.preventDefault()
+
+    setSubmitting(true)
+    setError(null)
+    try {
+      await onSubmit(run.id)
+      onClose?.()
+    } catch (err) {
+      setError(err?.message ?? 'Could not submit this payroll run for review.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <Modal
+      open={open}
+      onClose={submitting ? undefined : onClose}
+      size="sm"
+      title="Submit for review"
+      description="Move this draft payroll run into the review stage."
+      footer={
+        <>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={submitting}
+            className="inline-flex h-9 items-center rounded-[8px] border border-slate-200 bg-white px-3 text-[0.8rem] font-medium text-[#4A5568] transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            form="payroll-run-review-form"
+            disabled={submitting}
+            className="inline-flex h-9 items-center gap-1.5 rounded-[8px] bg-[#2C5EF5] px-3 text-[0.8rem] font-semibold text-white transition-colors hover:bg-[#1E47C9] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {submitting ? <LoadingButtonLabel label="Submitting" /> : 'Submit'}
+          </button>
+        </>
+      }
+    >
+      <form id="payroll-run-review-form" onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <div className="rounded-[12px] border border-slate-200 bg-slate-50/70 p-3">
+          <p className="m-0 text-[0.9rem] font-semibold text-[#0F1419]">
+            {run.name}
+          </p>
+          <p className="m-0 mt-1 text-[0.75rem] text-[#4A5568] [font-family:'Geist_Mono',monospace]">
+            {formatPeriod(run)}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-[10px] border border-slate-200 bg-white p-3">
+            <p className="m-0 text-[0.7rem] font-medium uppercase tracking-[0.1em] text-[#4A5568] [font-family:'Geist_Mono',monospace]">
+              Employees
+            </p>
+            <p className="m-0 mt-1 text-[1.15rem] font-bold leading-none text-[#0F1419]">
+              {formatInteger(run.employeeCount)}
+            </p>
+          </div>
+          <div className="rounded-[10px] border border-slate-200 bg-white p-3">
+            <p className="m-0 text-[0.7rem] font-medium uppercase tracking-[0.1em] text-[#4A5568] [font-family:'Geist_Mono',monospace]">
+              Salary
+            </p>
+            <p className="m-0 mt-1 text-[1.15rem] font-bold leading-none text-[#0F1419]">
+              {formatMoney(run.salaryTotal)}
+            </p>
+          </div>
+        </div>
 
         {error ? (
           <p className="m-0 rounded-[8px] bg-red-50 px-3 py-2 text-[0.8rem] text-red-700" role="alert">

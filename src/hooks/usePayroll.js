@@ -3,6 +3,7 @@ import {
   createPayrollRun,
   getPayrollDashboardMetrics,
   getPayrollRuns,
+  submitPayrollRunForReview,
 } from '../services/payroll.service.js'
 
 export function usePayrollDashboard() {
@@ -69,12 +70,21 @@ export function usePayrollRuns({ status = '', limit = 100, offset = 0 } = {}) {
     [refresh],
   )
 
+  const submitForReview = useCallback(
+    async (runId) => {
+      const submitted = await submitPayrollRunForReview(runId)
+      await refresh()
+      return submitted
+    },
+    [refresh],
+  )
+
   useEffect(() => {
     const timer = setTimeout(refresh, 0)
     return () => clearTimeout(timer)
   }, [refresh])
 
-  return { runs, count, loading, error, refresh, createRun }
+  return { runs, count, loading, error, refresh, createRun, submitForReview }
 }
 
 export default usePayrollDashboard
