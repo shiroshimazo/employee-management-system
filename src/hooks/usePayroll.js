@@ -4,6 +4,7 @@ import {
   cancelPayrollRun,
   createPayrollRun,
   getPayrollDashboardMetrics,
+  getPayrollRunDetails,
   getPayrollRuns,
   submitPayrollRunForReview,
 } from '../services/payroll.service.js'
@@ -105,6 +106,47 @@ export function usePayrollRuns({ status = '', limit = 100, offset = 0 } = {}) {
   }, [refresh])
 
   return { runs, count, loading, error, refresh, createRun, submitForReview, approveRun, cancelRun }
+}
+
+export function usePayrollRunDetails(runId, { enabled = true } = {}) {
+  const [details, setDetails] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const reqTokenRef = useRef(0)
+
+  const refresh = useCallback(async () => {
+    if (!enabled || !runId) {
+      setDetails(null)
+      setLoading(false)
+      setError(null)
+      return
+    }
+
+    const token = ++reqTokenRef.current
+    setLoading(true)
+    setError(null)
+
+    try {
+      const data = await getPayrollRunDetails(runId)
+      if (token !== reqTokenRef.current) return
+
+      setDetails(data)
+    } catch (err) {
+      if (token !== reqTokenRef.current) return
+
+      setDetails(null)
+      setError(err?.message ?? 'Failed to load payroll run details.')
+    } finally {
+      if (token === reqTokenRef.current) setLoading(false)
+    }
+  }, [enabled, runId])
+
+  useEffect(() => {
+    const timer = setTimeout(refresh, 0)
+    return () => clearTimeout(timer)
+  }, [refresh])
+
+  return { details, loading, error, refresh }
 }
 
 export default usePayrollDashboard

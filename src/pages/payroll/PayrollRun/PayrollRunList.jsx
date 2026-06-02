@@ -4,6 +4,7 @@ import {
   Ban,
   CalendarDays,
   CheckCircle2,
+  Eye,
   Filter,
   Plus,
   PlayCircle,
@@ -19,7 +20,7 @@ import StatCard from '../../../components/common/StatCard.jsx'
 import StatusBadge from '../../../components/common/StatusBadge.jsx'
 import Modal from '../../../components/common/Modal/Modal.jsx'
 import { LoadingButtonLabel, LoadingState } from '../../../components/common/LoadingBars.jsx'
-import { usePayrollRuns } from '../../../hooks/usePayroll.js'
+import { usePayrollRunDetails, usePayrollRuns } from '../../../hooks/usePayroll.js'
 
 const MONEY = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -122,6 +123,7 @@ function PayrollRunList() {
   const [reviewTarget, setReviewTarget] = useState(null)
   const [approvalTarget, setApprovalTarget] = useState(null)
   const [cancelTarget, setCancelTarget] = useState(null)
+  const [detailsTarget, setDetailsTarget] = useState(null)
   const {
     runs,
     count,
@@ -366,6 +368,7 @@ function PayrollRunList() {
                     <td className="px-4 py-3 text-right">
                       <RunActions
                         run={run}
+                        onView={setDetailsTarget}
                         onSubmitForReview={setReviewTarget}
                         onApprove={setApprovalTarget}
                         onCancel={setCancelTarget}
@@ -404,6 +407,12 @@ function PayrollRunList() {
         open={Boolean(cancelTarget)}
         onClose={() => setCancelTarget(null)}
         onSubmit={handleCancelRun}
+      />
+      <RunDetailsModal
+        key={detailsTarget?.id ?? 'payroll-run-details'}
+        run={detailsTarget}
+        open={Boolean(detailsTarget)}
+        onClose={() => setDetailsTarget(null)}
       />
     </PayrollLayout>
   )
@@ -460,51 +469,82 @@ function RunToolbar({ status, onStatusChange, onClear }) {
   )
 }
 
-function RunActions({ run, onSubmitForReview, onApprove, onCancel }) {
+function RunActions({ run, onView, onSubmitForReview, onApprove, onCancel }) {
   if (run.status === 'approved' || run.status === 'cancelled') {
     return (
-      <span className="text-[0.72rem] text-[#94A3B8] [font-family:'Geist_Mono',monospace]">
-        -
-      </span>
+      <div className="flex justify-end">
+        <RunActionButton
+          label="View"
+          icon={Eye}
+          onClick={() => onView(run)}
+          ariaLabel={`View ${run.name} details`}
+        />
+      </div>
     )
   }
 
   return (
     <div className="flex justify-end gap-1">
+      <RunActionButton
+        label="View"
+        icon={Eye}
+        onClick={() => onView(run)}
+        ariaLabel={`View ${run.name} details`}
+      />
+
       {run.status === 'draft' ? (
-        <button
-          type="button"
+        <RunActionButton
+          label="Submit"
+          icon={Send}
           onClick={() => onSubmitForReview(run)}
-          aria-label={`Submit ${run.name} for review`}
-          className="inline-flex h-8 items-center gap-1.5 rounded-[8px] px-2 text-[0.78rem] font-semibold text-[#4A5568] transition-colors hover:bg-slate-100 hover:text-[#0F1419] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2C5EF5]"
-        >
-          <Send size={13} strokeWidth={2.25} aria-hidden="true" />
-          <span>Submit</span>
-        </button>
+          ariaLabel={`Submit ${run.name} for review`}
+        />
       ) : null}
 
       {run.status === 'review' ? (
-        <button
-          type="button"
+        <RunActionButton
+          label="Approve"
+          icon={CheckCircle2}
           onClick={() => onApprove(run)}
-          aria-label={`Approve ${run.name}`}
-          className="inline-flex h-8 items-center gap-1.5 rounded-[8px] px-2 text-[0.78rem] font-semibold text-[#166534] transition-colors hover:bg-emerald-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2C5EF5]"
-        >
-          <CheckCircle2 size={13} strokeWidth={2.25} aria-hidden="true" />
-          <span>Approve</span>
-        </button>
+          ariaLabel={`Approve ${run.name}`}
+          tone="success"
+        />
       ) : null}
 
-      <button
-        type="button"
+      <RunActionButton
+        label="Cancel"
+        icon={Ban}
         onClick={() => onCancel(run)}
-        aria-label={`Cancel ${run.name}`}
-        className="inline-flex h-8 items-center gap-1.5 rounded-[8px] px-2 text-[0.78rem] font-semibold text-red-700 transition-colors hover:bg-red-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2C5EF5]"
-      >
-        <Ban size={13} strokeWidth={2.25} aria-hidden="true" />
-        <span>Cancel</span>
-      </button>
+        ariaLabel={`Cancel ${run.name}`}
+        tone="danger"
+      />
     </div>
+  )
+}
+
+function RunActionButton({
+  label,
+  icon: Icon,
+  onClick,
+  ariaLabel,
+  tone = 'default',
+}) {
+  const toneClass = {
+    default: 'text-[#4A5568] hover:bg-slate-100 hover:text-[#0F1419]',
+    success: 'text-[#166534] hover:bg-emerald-50',
+    danger: 'text-red-700 hover:bg-red-50',
+  }[tone]
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={ariaLabel}
+      className={`inline-flex h-8 items-center gap-1.5 rounded-[8px] px-2 text-[0.78rem] font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2C5EF5] ${toneClass}`}
+    >
+      <Icon size={13} strokeWidth={2.25} aria-hidden="true" />
+      <span>{label}</span>
+    </button>
   )
 }
 
@@ -650,6 +690,179 @@ function RunCreateModal({ open, onClose, onSubmit }) {
         ) : null}
       </form>
     </Modal>
+  )
+}
+
+function RunDetailsModal({ run, open, onClose }) {
+  const { details, loading, error, refresh } = usePayrollRunDetails(run?.id, { enabled: open })
+  const data = details ?? run
+  const items = details?.items ?? []
+  const summary = details?.itemSummary ?? {
+    itemCount: run?.employeeCount ?? 0,
+    missingSalary: 0,
+    salaryTotal: run?.salaryTotal ?? 0,
+    averageSalary: 0,
+  }
+
+  if (!run) return null
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      size="lg"
+      title="Payroll run details"
+      description="Employee-level snapshot captured for this payroll cycle."
+      footer={
+        <button
+          type="button"
+          onClick={onClose}
+          className="inline-flex h-9 items-center rounded-[8px] border border-slate-200 bg-white px-3 text-[0.8rem] font-medium text-[#4A5568] transition-colors hover:bg-slate-50"
+        >
+          Close
+        </button>
+      }
+    >
+      <div className="flex flex-col gap-4">
+        <div className="rounded-[14px] border border-slate-200 bg-slate-50/70 p-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="m-0 truncate text-[1rem] font-semibold text-[#0F1419]">
+                {data?.name ?? run.name}
+              </p>
+              <p className="m-0 mt-1 text-[0.78rem] text-[#4A5568] [font-family:'Geist_Mono',monospace]">
+                {formatPeriod(data ?? run)}
+              </p>
+            </div>
+            <StatusBadge value={data?.status ?? run.status} />
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-2 text-[0.78rem] text-[#4A5568] max-[560px]:grid-cols-1">
+            <p className="m-0">
+              Created by <span className="font-semibold text-[#0F1419]">{data?.createdBy?.name ?? 'Unknown user'}</span>
+            </p>
+            <p className="m-0">
+              Approved by <span className="font-semibold text-[#0F1419]">{data?.approvedBy?.name ?? 'Not approved'}</span>
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-4 gap-3 max-[900px]:grid-cols-2 max-[560px]:grid-cols-1">
+          <RunDetailStat label="Snapshot items" value={loading ? '-' : formatInteger(summary.itemCount)} />
+          <RunDetailStat label="Missing salary" value={loading ? '-' : formatInteger(summary.missingSalary)} tone={summary.missingSalary ? 'danger' : 'default'} />
+          <RunDetailStat label="Salary total" value={loading ? '-' : formatMoney(summary.salaryTotal)} />
+          <RunDetailStat label="Average salary" value={loading ? '-' : formatMoney(summary.averageSalary)} />
+        </div>
+
+        {error ? (
+          <div className="rounded-[10px] border border-red-200 bg-red-50 px-3 py-2">
+            <p className="m-0 text-[0.85rem] text-red-700" role="alert">
+              {error}
+            </p>
+            <button
+              type="button"
+              onClick={refresh}
+              className="mt-2 inline-flex h-8 items-center gap-1.5 rounded-[8px] bg-white px-2 text-[0.78rem] font-semibold text-red-700 transition-colors hover:bg-red-100"
+            >
+              <RefreshCw size={13} strokeWidth={2.25} aria-hidden="true" />
+              <span>Retry</span>
+            </button>
+          </div>
+        ) : null}
+
+        <section className="overflow-hidden rounded-[14px] border border-slate-200 bg-white" aria-label="Payroll run snapshot items">
+          <div className="flex items-center justify-between gap-3 border-b border-slate-200 bg-slate-50/60 px-4 py-3">
+            <p className="m-0 text-[0.7rem] font-medium uppercase tracking-[0.1em] text-[#4A5568] [font-family:'Geist_Mono',monospace]">
+              Snapshot rows
+            </p>
+            <span className="text-[0.75rem] text-[#94A3B8] [font-family:'Geist_Mono',monospace]">
+              {loading ? 'Loading' : `${formatInteger(items.length)} rows`}
+            </span>
+          </div>
+
+          <div className="max-h-[420px] overflow-auto">
+            <table className="w-full min-w-[760px] border-collapse">
+              <thead>
+                <tr className="text-left">
+                  {['Employee', 'Department', 'Type', 'Status', 'Salary'].map((heading) => (
+                    <th
+                      key={heading}
+                      className="sticky top-0 border-b border-slate-200 bg-white px-4 py-3 text-[0.65rem] font-medium uppercase tracking-[0.1em] text-[#4A5568] [font-family:'Geist_Mono',monospace]"
+                    >
+                      {heading}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-10 text-center text-[0.85rem] text-[#4A5568]">
+                      <LoadingState label="Loading snapshot items" />
+                    </td>
+                  </tr>
+                ) : items.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-10 text-center">
+                      <p className="m-0 text-[0.95rem] font-semibold text-[#0F1419]">
+                        No snapshot rows found.
+                      </p>
+                      <p className="m-0 mt-1 text-[0.85rem] text-[#4A5568]">
+                        Runs created before item snapshots were added may not have employee rows.
+                      </p>
+                    </td>
+                  </tr>
+                ) : (
+                  items.map((item) => (
+                    <tr key={item.id} className="transition-colors hover:bg-slate-50/70">
+                      <td className="px-4 py-3">
+                        <div className="min-w-0">
+                          <p className="m-0 truncate text-[0.88rem] font-semibold text-[#0F1419]">
+                            {item.name}
+                          </p>
+                          <p className="m-0 mt-1 text-[0.72rem] text-[#94A3B8] [font-family:'Geist_Mono',monospace]">
+                            {item.employeeNumber} · {item.position}
+                          </p>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-[0.85rem] text-[#4A5568]">
+                        <p className="m-0 text-[#0F1419]">{item.department.name}</p>
+                        <p className="m-0 mt-0.5 text-[0.72rem] text-[#94A3B8] [font-family:'Geist_Mono',monospace]">
+                          {item.department.code ?? '-'}
+                        </p>
+                      </td>
+                      <td className="px-4 py-3">
+                        <StatusBadge value={item.employmentType} />
+                      </td>
+                      <td className="px-4 py-3">
+                        <StatusBadge value={item.status} />
+                      </td>
+                      <td className="px-4 py-3 text-[0.9rem] font-semibold text-[#0F1419] [font-family:'Geist_Mono',monospace]">
+                        {item.salary == null ? 'Not set' : formatMoney(item.salary)}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </Modal>
+  )
+}
+
+function RunDetailStat({ label, value, tone = 'default' }) {
+  const valueClass = tone === 'danger' ? 'text-red-700' : 'text-[#0F1419]'
+
+  return (
+    <div className="rounded-[12px] border border-slate-200 bg-white p-3">
+      <p className="m-0 text-[0.68rem] font-medium uppercase tracking-[0.1em] text-[#4A5568] [font-family:'Geist_Mono',monospace]">
+        {label}
+      </p>
+      <p className={`m-0 mt-2 text-[1.05rem] font-bold leading-none [font-family:'Geist_Mono',monospace] ${valueClass}`}>
+        {value}
+      </p>
+    </div>
   )
 }
 
