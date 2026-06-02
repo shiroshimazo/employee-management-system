@@ -42,6 +42,9 @@ const TONE = {
   approved: 'bg-emerald-50 text-emerald-700',
   rejected: 'bg-red-50 text-red-700',
   cancelled: 'bg-slate-100 text-slate-600',
+  // Payroll run status
+  draft: 'bg-slate-100 text-slate-600',
+  review: 'bg-blue-50 text-blue-700',
   // Attendance status — `leave` collides visually with the leave-request
   // 'pending' tone, so we tint it amber-ish like 'on_leave' for the
   // employee-status read.
