@@ -37,6 +37,7 @@ import TeamLeavePage from './pages/team/TeamLeavePage.jsx'
 import TeamAttendancePage from './pages/team/TeamAttendancePage.jsx'
 import PayrollDashboard from './pages/payroll/Dashboard/PayrollDashboard.jsx'
 import SalaryManagement from './pages/payroll/Compensation/SalaryManagement.jsx'
+import PayrollRunList from './pages/payroll/PayrollRun/PayrollRunList.jsx'
 import PayrollModulePlaceholder from './pages/payroll/PayrollModulePlaceholder.jsx'
 import ForbiddenPage from './pages/errors/ForbiddenPage.jsx'
 import { LoadingState } from './components/common/LoadingBars.jsx'
@@ -189,12 +190,7 @@ function App() {
       return <SalaryManagement />
     }
     if (currentPath.startsWith('/payroll/payroll-run')) {
-      return (
-        <PayrollModulePlaceholder
-          title="PayrollRun"
-          description="Cycle setup, review, approval, and payroll run tracking will live here."
-        />
-      )
+      return <PayrollRunList />
     }
     if (currentPath.startsWith('/payroll/tax-and-compliance')) {
       return (
