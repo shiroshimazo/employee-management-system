@@ -16,6 +16,18 @@ export const EMPTY_PAYROLL_DASHBOARD_METRICS = {
   },
 }
 
+export const EMPTY_PAYROLL_SALARY_RECORDS = {
+  count: 0,
+  rows: [],
+  kpis: {
+    totalEmployees: 0,
+    salariedEmployees: 0,
+    missingSalary: 0,
+    salaryTotal: 0,
+    averageSalary: 0,
+  },
+}
+
 function numberOrZero(value) {
   const n = Number(value)
   return Number.isFinite(n) ? n : 0
@@ -59,6 +71,35 @@ function normalizeMissingSalaries(rows = []) {
   }))
 }
 
+function normalizeSalaryKpis(kpis = {}) {
+  return {
+    totalEmployees: numberOrZero(kpis.totalEmployees),
+    salariedEmployees: numberOrZero(kpis.salariedEmployees),
+    missingSalary: numberOrZero(kpis.missingSalary),
+    salaryTotal: numberOrZero(kpis.salaryTotal),
+    averageSalary: numberOrZero(kpis.averageSalary),
+  }
+}
+
+function normalizeSalaryRecord(row = {}) {
+  return {
+    id: row.id,
+    employeeNumber: row.employeeNumber ?? '—',
+    name: row.name ?? 'Unnamed employee',
+    position: row.position ?? '—',
+    employmentType: row.employmentType ?? 'unknown',
+    status: row.status ?? 'unknown',
+    hireDate: row.hireDate ?? null,
+    salary: row.salary == null ? null : numberOrZero(row.salary),
+    updatedAt: row.updatedAt ?? null,
+    department: {
+      id: row.department?.id ?? null,
+      name: row.department?.name ?? 'Unassigned',
+      code: row.department?.code ?? null,
+    },
+  }
+}
+
 export async function getPayrollDashboardMetrics() {
   const { data, error } = await supabase.rpc('get_payroll_dashboard_metrics')
   if (error) throw error
@@ -74,4 +115,48 @@ export async function getPayrollDashboardMetrics() {
       missingSalaries: normalizeMissingSalaries(raw.attention?.missingSalaries),
     },
   }
+}
+
+export async function getPayrollSalaryRecords({
+  query = '',
+  status = '',
+  departmentId = '',
+  limit = 50,
+  offset = 0,
+} = {}) {
+  const { data, error } = await supabase.rpc('get_payroll_salary_records', {
+    p_query: query.trim(),
+    p_status: status || null,
+    p_department_id: departmentId || null,
+    p_limit: limit,
+    p_offset: offset,
+  })
+  if (error) throw error
+
+  const raw = data ?? EMPTY_PAYROLL_SALARY_RECORDS
+
+  return {
+    count: numberOrZero(raw.count),
+    rows: (raw.rows ?? []).map(normalizeSalaryRecord),
+    kpis: normalizeSalaryKpis(raw.kpis),
+  }
+}
+
+export async function updatePayrollEmployeeSalary(employeeId, salary) {
+  if (!employeeId) {
+    throw new Error('updatePayrollEmployeeSalary requires an employee id.')
+  }
+
+  const nextSalary = salary === '' || salary == null ? null : Number(salary)
+  if (nextSalary != null && (!Number.isFinite(nextSalary) || nextSalary < 0)) {
+    throw new Error('Salary must be empty or a non-negative number.')
+  }
+
+  const { data, error } = await supabase.rpc('update_payroll_employee_salary', {
+    p_employee_id: employeeId,
+    p_salary: nextSalary,
+  })
+  if (error) throw error
+
+  return normalizeSalaryRecord(data)
 }
