@@ -4,6 +4,7 @@ import {
   Ban,
   CalendarDays,
   CheckCircle2,
+  Download,
   Eye,
   Filter,
   Plus,
@@ -98,6 +99,77 @@ function formatTimestamp(value) {
 
 function formatPeriod(run) {
   return `${formatDate(run.periodStart)} - ${formatDate(run.periodEnd)}`
+}
+
+function csvCell(value) {
+  if (value == null) return ''
+  return `"${String(value).replaceAll('"', '""')}"`
+}
+
+function rowsToCSV(rows) {
+  return rows.map((row) => row.map(csvCell).join(',')).join('\n')
+}
+
+function downloadCSV(filename, csv) {
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
+}
+
+function exportFileName(run) {
+  const safeName = String(run?.name ?? 'payroll-run')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 72)
+  return `${safeName || 'payroll-run'}-${new Date().toISOString().slice(0, 10)}.csv`
+}
+
+function payrollRunDetailsToCSV(run) {
+  const summary = run.itemSummary ?? {}
+  const items = run.items ?? []
+
+  return rowsToCSV([
+    ['Payroll Run', run.name],
+    ['Period Start', run.periodStart],
+    ['Period End', run.periodEnd],
+    ['Status', run.status],
+    ['Created By', run.createdBy?.name],
+    ['Approved By', run.approvedBy?.name],
+    ['Approved At', run.approvedAt],
+    [],
+    ['Snapshot Items', summary.itemCount],
+    ['Missing Salary', summary.missingSalary],
+    ['Salary Total', summary.salaryTotal],
+    ['Average Salary', summary.averageSalary],
+    [],
+    [
+      'Employee Number',
+      'Employee Name',
+      'Department',
+      'Department Code',
+      'Position',
+      'Employment Type',
+      'Status',
+      'Salary',
+    ],
+    ...items.map((item) => [
+      item.employeeNumber,
+      item.name,
+      item.department.name,
+      item.department.code,
+      item.position,
+      item.employmentType,
+      item.status,
+      item.salary,
+    ]),
+  ])
 }
 
 function toDateInputValue(date) {
@@ -703,8 +775,14 @@ function RunDetailsModal({ run, open, onClose }) {
     salaryTotal: run?.salaryTotal ?? 0,
     averageSalary: 0,
   }
+  const canExport = Boolean(details && items.length > 0 && !loading && !error)
 
   if (!run) return null
+
+  function handleExport() {
+    if (!details) return
+    downloadCSV(exportFileName(details), payrollRunDetailsToCSV(details))
+  }
 
   return (
     <Modal
@@ -714,13 +792,24 @@ function RunDetailsModal({ run, open, onClose }) {
       title="Payroll run details"
       description="Employee-level snapshot captured for this payroll cycle."
       footer={
-        <button
-          type="button"
-          onClick={onClose}
-          className="inline-flex h-9 items-center rounded-[8px] border border-slate-200 bg-white px-3 text-[0.8rem] font-medium text-[#4A5568] transition-colors hover:bg-slate-50"
-        >
-          Close
-        </button>
+        <>
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={!canExport}
+            className="inline-flex h-9 items-center gap-1.5 rounded-[8px] border border-slate-200 bg-white px-3 text-[0.8rem] font-semibold text-[#0F1419] transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Download size={14} strokeWidth={2.25} aria-hidden="true" />
+            <span>Export CSV</span>
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex h-9 items-center rounded-[8px] border border-slate-200 bg-white px-3 text-[0.8rem] font-medium text-[#4A5568] transition-colors hover:bg-slate-50"
+          >
+            Close
+          </button>
+        </>
       }
     >
       <div className="flex flex-col gap-4">
