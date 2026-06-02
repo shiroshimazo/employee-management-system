@@ -28,9 +28,23 @@ export const EMPTY_PAYROLL_SALARY_RECORDS = {
   },
 }
 
+export const EMPTY_PAYROLL_RUNS = {
+  count: 0,
+  rows: [],
+}
+
 function numberOrZero(value) {
   const n = Number(value)
   return Number.isFinite(n) ? n : 0
+}
+
+function normalizeUserRef(user = null) {
+  if (!user) return null
+
+  return {
+    id: user.id ?? null,
+    name: user.name ?? 'Unknown user',
+  }
 }
 
 function normalizeKpis(kpis = {}) {
@@ -100,6 +114,23 @@ function normalizeSalaryRecord(row = {}) {
   }
 }
 
+function normalizePayrollRun(row = {}) {
+  return {
+    id: row.id,
+    name: row.name ?? 'Payroll run',
+    periodStart: row.periodStart ?? null,
+    periodEnd: row.periodEnd ?? null,
+    status: row.status ?? 'draft',
+    employeeCount: numberOrZero(row.employeeCount),
+    salaryTotal: numberOrZero(row.salaryTotal),
+    createdAt: row.createdAt ?? null,
+    updatedAt: row.updatedAt ?? null,
+    createdBy: normalizeUserRef(row.createdBy),
+    approvedAt: row.approvedAt ?? null,
+    approvedBy: normalizeUserRef(row.approvedBy),
+  }
+}
+
 export async function getPayrollDashboardMetrics() {
   const { data, error } = await supabase.rpc('get_payroll_dashboard_metrics')
   if (error) throw error
@@ -140,6 +171,39 @@ export async function getPayrollSalaryRecords({
     rows: (raw.rows ?? []).map(normalizeSalaryRecord),
     kpis: normalizeSalaryKpis(raw.kpis),
   }
+}
+
+export async function getPayrollRuns({ status = '', limit = 50, offset = 0 } = {}) {
+  const { data, error } = await supabase.rpc('get_payroll_runs', {
+    p_status: status || null,
+    p_limit: limit,
+    p_offset: offset,
+  })
+  if (error) throw error
+
+  const raw = data ?? EMPTY_PAYROLL_RUNS
+
+  return {
+    count: numberOrZero(raw.count),
+    rows: (raw.rows ?? []).map(normalizePayrollRun),
+  }
+}
+
+export async function createPayrollRun({ periodStart, periodEnd, name = '' } = {}) {
+  if (!periodStart || !periodEnd) {
+    throw new Error('createPayrollRun requires a period start and end date.')
+  }
+
+  const trimmedName = typeof name === 'string' ? name.trim() : ''
+
+  const { data, error } = await supabase.rpc('create_payroll_run', {
+    p_period_start: periodStart,
+    p_period_end: periodEnd,
+    p_name: trimmedName || null,
+  })
+  if (error) throw error
+
+  return normalizePayrollRun(data)
 }
 
 export async function updatePayrollEmployeeSalary(employeeId, salary) {
