@@ -33,6 +33,28 @@ export const EMPTY_PAYROLL_RUNS = {
   rows: [],
 }
 
+export const EMPTY_PAYROLL_RUN_DETAILS = {
+  id: null,
+  name: 'Payroll run',
+  periodStart: null,
+  periodEnd: null,
+  status: 'draft',
+  employeeCount: 0,
+  salaryTotal: 0,
+  createdAt: null,
+  updatedAt: null,
+  createdBy: null,
+  approvedAt: null,
+  approvedBy: null,
+  itemSummary: {
+    itemCount: 0,
+    missingSalary: 0,
+    salaryTotal: 0,
+    averageSalary: 0,
+  },
+  items: [],
+}
+
 function numberOrZero(value) {
   const n = Number(value)
   return Number.isFinite(n) ? n : 0
@@ -131,6 +153,41 @@ function normalizePayrollRun(row = {}) {
   }
 }
 
+function normalizePayrollRunItem(row = {}) {
+  return {
+    id: row.id,
+    employeeId: row.employeeId ?? null,
+    employeeNumber: row.employeeNumber ?? '-',
+    name: row.name ?? 'Unnamed employee',
+    position: row.position ?? '-',
+    employmentType: row.employmentType ?? 'unknown',
+    status: row.status ?? 'unknown',
+    salary: row.salary == null ? null : numberOrZero(row.salary),
+    createdAt: row.createdAt ?? null,
+    department: {
+      name: row.department?.name ?? 'Unassigned',
+      code: row.department?.code ?? null,
+    },
+  }
+}
+
+function normalizePayrollRunItemSummary(summary = {}) {
+  return {
+    itemCount: numberOrZero(summary.itemCount),
+    missingSalary: numberOrZero(summary.missingSalary),
+    salaryTotal: numberOrZero(summary.salaryTotal),
+    averageSalary: numberOrZero(summary.averageSalary),
+  }
+}
+
+function normalizePayrollRunDetails(row = {}) {
+  return {
+    ...normalizePayrollRun(row),
+    itemSummary: normalizePayrollRunItemSummary(row.itemSummary),
+    items: (row.items ?? []).map(normalizePayrollRunItem),
+  }
+}
+
 export async function getPayrollDashboardMetrics() {
   const { data, error } = await supabase.rpc('get_payroll_dashboard_metrics')
   if (error) throw error
@@ -204,6 +261,19 @@ export async function createPayrollRun({ periodStart, periodEnd, name = '' } = {
   if (error) throw error
 
   return normalizePayrollRun(data)
+}
+
+export async function getPayrollRunDetails(runId) {
+  if (!runId) {
+    throw new Error('getPayrollRunDetails requires a payroll run id.')
+  }
+
+  const { data, error } = await supabase.rpc('get_payroll_run_details', {
+    p_run_id: runId,
+  })
+  if (error) throw error
+
+  return normalizePayrollRunDetails(data ?? EMPTY_PAYROLL_RUN_DETAILS)
 }
 
 export async function submitPayrollRunForReview(runId) {
