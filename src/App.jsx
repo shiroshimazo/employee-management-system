@@ -36,6 +36,7 @@ import MyProfilePage from './pages/employee/Profile/MyProfilePage.jsx'
 import TeamLeavePage from './pages/team/TeamLeavePage.jsx'
 import TeamAttendancePage from './pages/team/TeamAttendancePage.jsx'
 import PayrollDashboard from './pages/payroll/Dashboard/PayrollDashboard.jsx'
+import SalaryManagement from './pages/payroll/Compensation/SalaryManagement.jsx'
 import PayrollModulePlaceholder from './pages/payroll/PayrollModulePlaceholder.jsx'
 import ForbiddenPage from './pages/errors/ForbiddenPage.jsx'
 import { LoadingState } from './components/common/LoadingBars.jsx'
@@ -185,12 +186,7 @@ function App() {
       return <PayrollDashboard />
     }
     if (currentPath.startsWith('/payroll/compensation')) {
-      return (
-        <PayrollModulePlaceholder
-          title="Compensation"
-          description="Salary, benefits, bonuses, and deductions workflows will live here."
-        />
-      )
+      return <SalaryManagement />
     }
     if (currentPath.startsWith('/payroll/payroll-run')) {
       return (
