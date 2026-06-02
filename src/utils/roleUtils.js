@@ -22,6 +22,11 @@ export function canAccessTeam(role) {
   return role === 'manager'
 }
 
+// Payroll workspace (/payroll/*) — payroll users only.
+export function canAccessPayroll(role) {
+  return role === 'payroll'
+}
+
 /**
  * homePathForRole(role) — where a freshly-logged-in user (or one who hits a
  * bare/unknown path) should land: the highest-privilege workspace their role
@@ -33,5 +38,6 @@ export function homePathForRole(role) {
   if (role === 'hr') return '/hr'
   if (canAccessAdmin(role)) return '/admin'
   if (canAccessTeam(role)) return '/team/leave'
+  if (canAccessPayroll(role)) return '/payroll'
   return '/employee'
 }

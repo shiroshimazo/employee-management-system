@@ -1,4 +1,5 @@
 import LoginPage from './pages/auth/LoginPage.jsx'
+import { useEffect } from 'react'
 import RegistrationPage from './pages/auth/RegistrationPage.jsx'
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage.jsx'
 import ResetPasswordPage from './pages/auth/ResetPasswordPage.jsx'
@@ -34,10 +35,17 @@ import MyPayslipsPage from './pages/employee/Payslips/MyPayslipsPage.jsx'
 import MyProfilePage from './pages/employee/Profile/MyProfilePage.jsx'
 import TeamLeavePage from './pages/team/TeamLeavePage.jsx'
 import TeamAttendancePage from './pages/team/TeamAttendancePage.jsx'
+import PayrollDashboard from './pages/payroll/Dashboard/PayrollDashboard.jsx'
+import PayrollModulePlaceholder from './pages/payroll/PayrollModulePlaceholder.jsx'
 import ForbiddenPage from './pages/errors/ForbiddenPage.jsx'
 import { LoadingState } from './components/common/LoadingBars.jsx'
 import { useAuth } from './hooks/useAuth.js'
-import { canAccessAdmin, canAccessHR, canAccessTeam } from './utils/roleUtils.js'
+import {
+  canAccessAdmin,
+  canAccessHR,
+  canAccessPayroll,
+  canAccessTeam,
+} from './utils/roleUtils.js'
 
 function LoadingScreen() {
   return (
@@ -49,6 +57,14 @@ function LoadingScreen() {
       />
     </main>
   )
+}
+
+function RedirectTo({ path }) {
+  useEffect(() => {
+    window.location.replace(path)
+  }, [path])
+
+  return <LoadingScreen />
 }
 
 function App() {
@@ -162,6 +178,47 @@ function App() {
     return <HRDashboard />
   }
 
+  // ── Payroll workspace (/payroll/*) — payroll only ───────────────────────
+  if (currentPath.startsWith('/payroll')) {
+    if (!canAccessPayroll(role)) return <ForbiddenPage />
+    if (currentPath === '/payroll' || currentPath.startsWith('/payroll/dashboard')) {
+      return <PayrollDashboard />
+    }
+    if (currentPath.startsWith('/payroll/compensation')) {
+      return (
+        <PayrollModulePlaceholder
+          title="Compensation"
+          description="Salary, benefits, bonuses, and deductions workflows will live here."
+        />
+      )
+    }
+    if (currentPath.startsWith('/payroll/payroll-run')) {
+      return (
+        <PayrollModulePlaceholder
+          title="PayrollRun"
+          description="Cycle setup, review, approval, and payroll run tracking will live here."
+        />
+      )
+    }
+    if (currentPath.startsWith('/payroll/tax-and-compliance')) {
+      return (
+        <PayrollModulePlaceholder
+          title="TaxAndCompliance"
+          description="Tax settings, filings, and government report tracking will live here."
+        />
+      )
+    }
+    if (currentPath.startsWith('/payroll/reports')) {
+      return (
+        <PayrollModulePlaceholder
+          title="Reports"
+          description="Payroll cost, compliance, and employee pay reports will live here."
+        />
+      )
+    }
+    return <PayrollDashboard />
+  }
+
   // ── Admin workspace (/admin/*) — admin only ─────────────────────────────
   // The single role gate guards the whole tree, including the /admin
   // catch-all, so an employee can't reach any back-office page by URL.
@@ -205,6 +262,7 @@ function App() {
   if (role === 'hr') return <HRDashboard />
   if (canAccessAdmin(role)) return <AdminDashboard />
   if (canAccessTeam(role)) return <TeamLeavePage />
+  if (canAccessPayroll(role)) return <RedirectTo path="/payroll" />
   return <MyDashboardPage />
 }
 

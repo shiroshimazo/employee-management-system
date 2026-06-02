@@ -28,6 +28,7 @@ import NavItem from './NavItem.jsx'
  *   - Workspace : admin           → /admin/* system/back-office pages
  *   - Team      : manager         → /team/*  read-mostly views
  *   - People    : hr              → /hr/*    people-ops pages
+ *   - Payroll   : payroll         → /payroll/* payroll operations
  *   - Personal  : everyone        → /me/*    self-service
  *   - System    : admin           → audit / security / settings
  *
@@ -63,6 +64,17 @@ const SECTIONS = [
     ],
   },
   {
+    title: 'Payroll',
+    roles: ['payroll'],
+    items: [
+      { label: 'Dashboard', href: '/payroll', icon: LayoutDashboard, exact: true },
+      { label: 'Compensation', href: '/payroll/compensation', icon: Briefcase },
+      { label: 'PayrollRun', href: '/payroll/payroll-run', icon: ScrollText },
+      { label: 'TaxAndCompliance', href: '/payroll/tax-and-compliance', icon: ShieldCheck },
+      { label: 'Reports', href: '/payroll/reports', icon: TrendingUp },
+    ],
+  },
+  {
     title: 'People',
     // HR's own module. Admin users keep system/back-office navigation separate
     // from confidential HR workflows.
@@ -91,11 +103,11 @@ const SECTIONS = [
   },
   {
     title: 'Personal',
-    // HR / managers / payroll / employees see their own self-service — they're
-    // staff too. Admin is treated as a pure back-office role here, so it's
+    // HR / managers / employees see their own self-service — they're staff
+    // too. Admin is treated as a pure back-office role here, so it's
     // intentionally excluded: an admin manages the system, not their own
-    // timesheet.
-    roles: ['hr', 'manager', 'payroll', 'employee'],
+    // timesheet. Payroll uses its focused workspace navigation above.
+    roles: ['hr', 'manager', 'employee'],
     items: [
       { label: 'My Dashboard', href: '/employee', icon: LayoutDashboard, exact: true },
       { label: 'My Attendance', href: '/employee/attendance', icon: CalendarDays },
