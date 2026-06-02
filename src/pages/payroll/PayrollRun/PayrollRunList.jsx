@@ -119,7 +119,8 @@ function PayrollRunList() {
   const [status, setStatus] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
   const [reviewTarget, setReviewTarget] = useState(null)
-  const { runs, count, loading, error, refresh, createRun, submitForReview } = usePayrollRuns({ status })
+  const [approvalTarget, setApprovalTarget] = useState(null)
+  const { runs, count, loading, error, refresh, createRun, submitForReview, approveRun } = usePayrollRuns({ status })
 
   const statusCounts = useMemo(
     () =>
@@ -159,6 +160,12 @@ function PayrollRunList() {
     const submitted = await submitForReview(runId)
     if (status && status !== submitted.status) setStatus('')
     return submitted
+  }
+
+  async function handleApproveRun(runId) {
+    const approved = await approveRun(runId)
+    if (status && status !== approved.status) setStatus('')
+    return approved
   }
 
   return (
@@ -349,6 +356,16 @@ function PayrollRunList() {
                           <Send size={13} strokeWidth={2.25} aria-hidden="true" />
                           <span>Submit</span>
                         </button>
+                      ) : run.status === 'review' ? (
+                        <button
+                          type="button"
+                          onClick={() => setApprovalTarget(run)}
+                          aria-label={`Approve ${run.name}`}
+                          className="inline-flex h-8 items-center gap-1.5 rounded-[8px] px-2 text-[0.78rem] font-semibold text-[#166534] transition-colors hover:bg-emerald-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2C5EF5]"
+                        >
+                          <CheckCircle2 size={13} strokeWidth={2.25} aria-hidden="true" />
+                          <span>Approve</span>
+                        </button>
                       ) : (
                         <span className="text-[0.72rem] text-[#94A3B8] [font-family:'Geist_Mono',monospace]">
                           -
@@ -374,6 +391,13 @@ function PayrollRunList() {
         open={Boolean(reviewTarget)}
         onClose={() => setReviewTarget(null)}
         onSubmit={handleSubmitForReview}
+      />
+      <RunApprovalModal
+        key={approvalTarget?.id ?? 'payroll-run-approval'}
+        run={approvalTarget}
+        open={Boolean(approvalTarget)}
+        onClose={() => setApprovalTarget(null)}
+        onSubmit={handleApproveRun}
       />
     </PayrollLayout>
   )
@@ -652,6 +676,98 @@ function RunReviewModal({ run, open, onClose, onSubmit }) {
             </p>
           </div>
         </div>
+
+        {error ? (
+          <p className="m-0 rounded-[8px] bg-red-50 px-3 py-2 text-[0.8rem] text-red-700" role="alert">
+            {error}
+          </p>
+        ) : null}
+      </form>
+    </Modal>
+  )
+}
+
+function RunApprovalModal({ run, open, onClose, onSubmit }) {
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState(null)
+
+  if (!run) return null
+
+  async function handleSubmit(event) {
+    event.preventDefault()
+
+    setSubmitting(true)
+    setError(null)
+    try {
+      await onSubmit(run.id)
+      onClose?.()
+    } catch (err) {
+      setError(err?.message ?? 'Could not approve this payroll run.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <Modal
+      open={open}
+      onClose={submitting ? undefined : onClose}
+      size="sm"
+      title="Approve payroll run"
+      description="Finalize this reviewed payroll run and record the approval."
+      footer={
+        <>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={submitting}
+            className="inline-flex h-9 items-center rounded-[8px] border border-slate-200 bg-white px-3 text-[0.8rem] font-medium text-[#4A5568] transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            form="payroll-run-approval-form"
+            disabled={submitting}
+            className="inline-flex h-9 items-center gap-1.5 rounded-[8px] bg-emerald-600 px-3 text-[0.8rem] font-semibold text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {submitting ? <LoadingButtonLabel label="Approving" /> : 'Approve run'}
+          </button>
+        </>
+      }
+    >
+      <form id="payroll-run-approval-form" onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <div className="rounded-[12px] border border-slate-200 bg-slate-50/70 p-3">
+          <p className="m-0 text-[0.9rem] font-semibold text-[#0F1419]">
+            {run.name}
+          </p>
+          <p className="m-0 mt-1 text-[0.75rem] text-[#4A5568] [font-family:'Geist_Mono',monospace]">
+            {formatPeriod(run)}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-[10px] border border-slate-200 bg-white p-3">
+            <p className="m-0 text-[0.7rem] font-medium uppercase tracking-[0.1em] text-[#4A5568] [font-family:'Geist_Mono',monospace]">
+              Employees
+            </p>
+            <p className="m-0 mt-1 text-[1.15rem] font-bold leading-none text-[#0F1419]">
+              {formatInteger(run.employeeCount)}
+            </p>
+          </div>
+          <div className="rounded-[10px] border border-slate-200 bg-white p-3">
+            <p className="m-0 text-[0.7rem] font-medium uppercase tracking-[0.1em] text-[#4A5568] [font-family:'Geist_Mono',monospace]">
+              Salary
+            </p>
+            <p className="m-0 mt-1 text-[1.15rem] font-bold leading-none text-[#0F1419]">
+              {formatMoney(run.salaryTotal)}
+            </p>
+          </div>
+        </div>
+
+        <p className="m-0 rounded-[10px] border border-emerald-200 bg-emerald-50 px-3 py-2 text-[0.8rem] leading-snug text-emerald-800">
+          Approval will lock this run into the approved status and record your profile as the approver.
+        </p>
 
         {error ? (
           <p className="m-0 rounded-[8px] bg-red-50 px-3 py-2 text-[0.8rem] text-red-700" role="alert">
