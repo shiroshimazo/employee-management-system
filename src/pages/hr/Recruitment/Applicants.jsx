@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { AlertTriangle, ExternalLink, Plus, Trash2, UserSearch } from 'lucide-react'
 import AdminLayout from '../../../layouts/AdminLayout.jsx'
 import Modal from '../../../components/common/Modal/Modal.jsx'
+import { LoadingButtonLabel, LoadingState } from '../../../components/common/LoadingBars.jsx'
 import {
   STAGES,
   createApplicant,
@@ -128,7 +129,9 @@ function Applicants() {
   }
 
   const totalLabel = useMemo(() => {
-    if (loading) return 'Loading…'
+    if (loading) {
+      return <LoadingState label="Loading" barsClassName="h-3 w-5" />
+    }
     return `${rows.length} ${rows.length === 1 ? 'applicant' : 'applicants'}`
   }, [loading, rows.length])
 
@@ -238,7 +241,7 @@ function Applicants() {
                   {loading && rows.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="px-4 py-10 text-center text-[0.85rem] text-[#4A5568]">
-                        Loading applicants…
+                        <LoadingState label="Loading applicants" />
                       </td>
                     </tr>
                   ) : rows.length === 0 ? (
@@ -410,7 +413,7 @@ function AddApplicantModal({ open, onClose, postings = [], onSubmit }) {
             disabled={submitting}
             className="inline-flex h-9 items-center rounded-[8px] bg-[#2C5EF5] px-3 text-[0.8rem] font-semibold text-white transition-colors hover:bg-[#1E47C9] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {submitting ? 'Saving…' : 'Add applicant'}
+            {submitting ? <LoadingButtonLabel label="Saving" /> : 'Add applicant'}
           </button>
         </>
       }
@@ -532,7 +535,7 @@ function DeleteApplicantModal({ open, onClose, applicant, onConfirm }) {
             disabled={submitting || !applicant}
             className="inline-flex h-9 items-center rounded-[8px] bg-red-600 px-3 text-[0.8rem] font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {submitting ? 'Deleting…' : 'Delete applicant'}
+            {submitting ? <LoadingButtonLabel label="Deleting" /> : 'Delete applicant'}
           </button>
         </>
       }

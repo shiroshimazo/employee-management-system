@@ -4,6 +4,7 @@ import { AlertTriangle, GraduationCap, Pencil, Plus, Trash2 } from 'lucide-react
 import AdminLayout from '../../../layouts/AdminLayout.jsx'
 import StatusBadge from '../../../components/common/StatusBadge.jsx'
 import Modal from '../../../components/common/Modal/Modal.jsx'
+import { LoadingButtonLabel, LoadingState } from '../../../components/common/LoadingBars.jsx'
 import {
   TRAINING_STATUSES,
   createTrainingRecord,
@@ -107,7 +108,9 @@ function TrainingRecords() {
   }
 
   const totalLabel = useMemo(() => {
-    if (loading) return 'Loading…'
+    if (loading) {
+      return <LoadingState label="Loading" barsClassName="h-3 w-5" />
+    }
     return `${rows.length} ${rows.length === 1 ? 'record' : 'records'}`
   }, [loading, rows.length])
 
@@ -202,7 +205,7 @@ function TrainingRecords() {
                   {loading && rows.length === 0 ? (
                     <tr>
                       <td colSpan={7} className="px-4 py-10 text-center text-[0.85rem] text-[#4A5568]">
-                        Loading training records…
+                        <LoadingState label="Loading training records" />
                       </td>
                     </tr>
                   ) : rows.length === 0 ? (
@@ -382,7 +385,13 @@ function TrainingModal({ open, onClose, mode = 'create', initialValue, employees
             disabled={submitting}
             className="inline-flex h-9 items-center rounded-[8px] bg-[#2C5EF5] px-3 text-[0.8rem] font-semibold text-white transition-colors hover:bg-[#1E47C9] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {submitting ? 'Saving…' : isEdit ? 'Save changes' : 'Create record'}
+            {submitting ? (
+              <LoadingButtonLabel label="Saving" />
+            ) : isEdit ? (
+              'Save changes'
+            ) : (
+              'Create record'
+            )}
           </button>
         </>
       }
@@ -518,7 +527,7 @@ function DeleteTrainingModal({ open, onClose, record, onConfirm }) {
             disabled={submitting || !record}
             className="inline-flex h-9 items-center rounded-[8px] bg-red-600 px-3 text-[0.8rem] font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {submitting ? 'Deleting…' : 'Delete record'}
+            {submitting ? <LoadingButtonLabel label="Deleting" /> : 'Delete record'}
           </button>
         </>
       }

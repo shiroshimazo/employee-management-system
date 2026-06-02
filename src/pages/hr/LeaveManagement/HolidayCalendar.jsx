@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { AlertTriangle, CalendarDays, Plus, Trash2 } from 'lucide-react'
 import AdminLayout from '../../../layouts/AdminLayout.jsx'
 import Modal from '../../../components/common/Modal/Modal.jsx'
+import { LoadingButtonLabel, LoadingState } from '../../../components/common/LoadingBars.jsx'
 import { createHoliday, deleteHoliday, getHolidays } from '../../../services/holiday.service.js'
 
 /**
@@ -92,7 +93,9 @@ function HolidayCalendar() {
 
   const today = todayISO()
   const totalLabel = useMemo(() => {
-    if (loading) return 'Loading…'
+    if (loading) {
+      return <LoadingState label="Loading" barsClassName="h-3 w-5" />
+    }
     return `${rows.length} ${rows.length === 1 ? 'holiday' : 'holidays'}`
   }, [loading, rows.length])
 
@@ -174,7 +177,7 @@ function HolidayCalendar() {
                   {loading && rows.length === 0 ? (
                     <tr>
                       <td colSpan={4} className="px-4 py-10 text-center text-[0.85rem] text-[#4A5568]">
-                        Loading holidays…
+                        <LoadingState label="Loading holidays" />
                       </td>
                     </tr>
                   ) : rows.length === 0 ? (
@@ -299,7 +302,7 @@ function AddHolidayModal({ open, onClose, onSubmit }) {
             disabled={submitting}
             className="inline-flex h-9 items-center rounded-[8px] bg-[#2C5EF5] px-3 text-[0.8rem] font-semibold text-white transition-colors hover:bg-[#1E47C9] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {submitting ? 'Saving…' : 'Add holiday'}
+            {submitting ? <LoadingButtonLabel label="Saving" /> : 'Add holiday'}
           </button>
         </>
       }
@@ -395,7 +398,7 @@ function DeleteHolidayModal({ open, onClose, holiday, onConfirm }) {
             disabled={submitting || !holiday}
             className="inline-flex h-9 items-center rounded-[8px] bg-red-600 px-3 text-[0.8rem] font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {submitting ? 'Deleting…' : 'Delete holiday'}
+            {submitting ? <LoadingButtonLabel label="Deleting" /> : 'Delete holiday'}
           </button>
         </>
       }

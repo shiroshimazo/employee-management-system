@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import Modal from '../common/Modal/Modal.jsx'
+import { LoadingButtonLabel } from '../common/LoadingBars.jsx'
 
 /**
  * AttendanceEditModal — admin/HR manual edit of a single attendance row.
@@ -115,7 +116,7 @@ function AttendanceEditModal({ open, onClose, record, onSubmit }) {
             disabled={submitting || !record}
             className="inline-flex h-9 items-center rounded-[8px] bg-[#2C5EF5] px-3 text-[0.8rem] font-semibold text-white transition-colors hover:bg-[#1E47C9] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {submitting ? 'Saving…' : 'Save changes'}
+            {submitting ? <LoadingButtonLabel label="Saving" /> : 'Save changes'}
           </button>
         </>
       }

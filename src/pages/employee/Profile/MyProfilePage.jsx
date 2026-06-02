@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Save } from 'lucide-react'
 import AdminLayout from '../../../layouts/AdminLayout.jsx'
+import { LoadingButtonLabel } from '../../../components/common/LoadingBars.jsx'
 import StatusBadge from '../../../components/common/StatusBadge.jsx'
 import { useAuth } from '../../../hooks/useAuth.js'
 import { updateProfile } from '../../../services/profile.service.js'
@@ -134,11 +135,17 @@ function MyProfilePage() {
 
               <button
                 type="submit"
-                disabled={submitting}
-                className="inline-flex h-9 items-center gap-1.5 rounded-[8px] bg-[#2C5EF5] px-3 text-[0.8rem] font-semibold text-white transition-colors hover:bg-[#1E47C9] disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <Save size={14} strokeWidth={2.25} aria-hidden="true" />
-                {submitting ? 'Saving…' : 'Save changes'}
+              disabled={submitting}
+              className="inline-flex h-9 items-center gap-1.5 rounded-[8px] bg-[#2C5EF5] px-3 text-[0.8rem] font-semibold text-white transition-colors hover:bg-[#1E47C9] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+                {submitting ? (
+                  <LoadingButtonLabel label="Saving" />
+                ) : (
+                  <>
+                    <Save size={14} strokeWidth={2.25} aria-hidden="true" />
+                    Save changes
+                  </>
+                )}
               </button>
             </div>
           </form>

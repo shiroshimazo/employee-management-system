@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { XCircle } from 'lucide-react'
 import Modal from '../common/Modal/Modal.jsx'
+import { LoadingButtonLabel } from '../common/LoadingBars.jsx'
 
 /**
  * RejectLeaveModal — captures the rejection reason before sending it to
@@ -67,7 +68,7 @@ function RejectLeaveModal({ open, onClose, request, onConfirm }) {
             disabled={submitting}
             className="inline-flex h-9 items-center rounded-[8px] bg-red-600 px-3 text-[0.8rem] font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {submitting ? 'Rejecting…' : 'Reject request'}
+            {submitting ? <LoadingButtonLabel label="Rejecting" /> : 'Reject request'}
           </button>
         </>
       }

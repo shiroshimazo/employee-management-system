@@ -8,6 +8,7 @@ import {
   UserCircle,
 } from 'lucide-react'
 import AdminLayout from '../../../layouts/AdminLayout.jsx'
+import { LoadingState } from '../../../components/common/LoadingBars.jsx'
 import StatusBadge from '../../../components/common/StatusBadge.jsx'
 import { useAuth } from '../../../hooks/useAuth.js'
 import { supabase } from '../../../lib/supabase.js'
@@ -171,7 +172,11 @@ function MyDashboardPage() {
           </header>
 
           {loading ? (
-            <p className="m-0 text-[0.85rem] text-[#94A3B8]">Loading…</p>
+            <LoadingState
+              label="Loading recent leave"
+              className="text-[0.85rem] text-[#94A3B8]"
+              barsClassName="h-3.5 w-5"
+            />
           ) : leave.length === 0 ? (
             <p className="m-0 rounded-[10px] border border-dashed border-slate-200 bg-slate-50/40 px-3 py-4 text-center text-[0.85rem] text-[#94A3B8]">
               No leave requests yet.

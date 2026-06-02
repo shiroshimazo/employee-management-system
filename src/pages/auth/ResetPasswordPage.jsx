@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { CheckCircle2, Eye, EyeOff, Lock, ShieldAlert } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { LoadingButtonLabel, LoadingState } from '../../components/common/LoadingBars.jsx'
 import { supabase } from '../../lib/supabase.js'
 import { updatePassword } from '../../services/auth.service.js'
 import { fadeDown } from '../../lib/motion.js'
@@ -188,9 +189,11 @@ function ResetPasswordPage() {
   if (linkStatus === 'checking') {
     return (
       <main className="flex min-h-dvh items-center justify-center bg-white px-6 py-8 [font-family:'Geist',sans-serif]">
-        <p className="text-[0.95rem] text-[#4A5568]" role="status" aria-live="polite">
-          Verifying your reset link…
-        </p>
+        <LoadingState
+          label="Verifying your reset link"
+          className="text-[0.95rem] text-[#4A5568]"
+          barsClassName="h-5 w-8"
+        />
       </main>
     )
   }
@@ -346,7 +349,7 @@ function ResetPasswordPage() {
               {submitted
                 ? 'PASSWORD UPDATED'
                 : isSubmitting
-                  ? 'UPDATING…'
+                  ? <LoadingButtonLabel label="UPDATING" barsClassName="h-4 w-6" />
                   : 'UPDATE PASSWORD'}
             </button>
 

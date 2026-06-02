@@ -4,6 +4,7 @@ import { AlertTriangle, ExternalLink, FileSignature, Pencil, Plus, Trash2 } from
 import AdminLayout from '../../../layouts/AdminLayout.jsx'
 import StatusBadge from '../../../components/common/StatusBadge.jsx'
 import Modal from '../../../components/common/Modal/Modal.jsx'
+import { LoadingButtonLabel, LoadingState } from '../../../components/common/LoadingBars.jsx'
 import {
   CONTRACT_STATUSES,
   CONTRACT_TYPES,
@@ -113,7 +114,9 @@ function ContractManagement() {
   }
 
   const totalLabel = useMemo(() => {
-    if (loading) return 'Loading…'
+    if (loading) {
+      return <LoadingState label="Loading" barsClassName="h-3 w-5" />
+    }
     return `${rows.length} ${rows.length === 1 ? 'contract' : 'contracts'}`
   }, [loading, rows.length])
 
@@ -220,7 +223,7 @@ function ContractManagement() {
                   {loading && rows.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="px-4 py-10 text-center text-[0.85rem] text-[#4A5568]">
-                        Loading contracts…
+                        <LoadingState label="Loading contracts" />
                       </td>
                     </tr>
                   ) : rows.length === 0 ? (
@@ -409,7 +412,13 @@ function ContractModal({ open, onClose, mode = 'create', initialValue, employees
             disabled={submitting}
             className="inline-flex h-9 items-center rounded-[8px] bg-[#2C5EF5] px-3 text-[0.8rem] font-semibold text-white transition-colors hover:bg-[#1E47C9] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {submitting ? 'Saving…' : isEdit ? 'Save changes' : 'Create contract'}
+            {submitting ? (
+              <LoadingButtonLabel label="Saving" />
+            ) : isEdit ? (
+              'Save changes'
+            ) : (
+              'Create contract'
+            )}
           </button>
         </>
       }
@@ -548,7 +557,7 @@ function DeleteContractModal({ open, onClose, contract, onConfirm }) {
             disabled={submitting || !contract}
             className="inline-flex h-9 items-center rounded-[8px] bg-red-600 px-3 text-[0.8rem] font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {submitting ? 'Deleting…' : 'Delete contract'}
+            {submitting ? <LoadingButtonLabel label="Deleting" /> : 'Delete contract'}
           </button>
         </>
       }

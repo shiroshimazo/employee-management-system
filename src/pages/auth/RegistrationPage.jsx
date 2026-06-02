@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { CheckCircle, Eye, EyeOff, Lock, Mail, User } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { LoadingButtonLabel } from '../../components/common/LoadingBars.jsx'
 import { signOutLocal, signUp } from '../../services/auth.service.js'
 import { fadeDown } from '../../lib/motion.js'
 
@@ -398,7 +399,11 @@ function RegistrationPage() {
             type="submit"
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'CREATING ACCOUNT…' : 'SIGN UP'}
+            {isSubmitting ? (
+              <LoadingButtonLabel label="CREATING ACCOUNT" barsClassName="h-4 w-6" />
+            ) : (
+              'SIGN UP'
+            )}
           </button>
 
           {submitError ? (

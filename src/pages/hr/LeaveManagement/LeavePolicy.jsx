@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Check, ScrollText } from 'lucide-react'
 import AdminLayout from '../../../layouts/AdminLayout.jsx'
+import { LoadingButtonLabel, LoadingState } from '../../../components/common/LoadingBars.jsx'
 import StatusBadge from '../../../components/common/StatusBadge.jsx'
 import { getLeavePolicies, updateLeavePolicy } from '../../../services/leavePolicy.service.js'
 
@@ -152,7 +153,7 @@ function LeavePolicy() {
                 {loading && rows.length === 0 ? (
                   <tr>
                     <td colSpan={3} className="px-4 py-10 text-center text-[0.85rem] text-[#4A5568]">
-                      Loading leave policies…
+                      <LoadingState label="Loading leave policies" />
                     </td>
                   </tr>
                 ) : (
@@ -188,8 +189,14 @@ function LeavePolicy() {
                             disabled={!dirty || busy}
                             className="inline-flex h-9 items-center gap-1.5 rounded-[8px] bg-[#2C5EF5] px-3 text-[0.78rem] font-semibold text-white transition-colors hover:bg-[#1E47C9] disabled:cursor-not-allowed disabled:opacity-50"
                           >
-                            <Check size={13} strokeWidth={2.5} aria-hidden="true" />
-                            {busy ? 'Saving…' : 'Save'}
+                            {busy ? (
+                              <LoadingButtonLabel label="Saving" />
+                            ) : (
+                              <>
+                                <Check size={13} strokeWidth={2.5} aria-hidden="true" />
+                                Save
+                              </>
+                            )}
                           </button>
                         </td>
                       </tr>

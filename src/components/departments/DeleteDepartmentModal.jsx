@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { AlertTriangle } from 'lucide-react'
 import Modal from '../common/Modal/Modal.jsx'
+import { LoadingButtonLabel } from '../common/LoadingBars.jsx'
 
 /**
  * DeleteDepartmentModal — destructive confirmation step.
@@ -53,7 +54,7 @@ function DeleteDepartmentModal({ open, onClose, department, employeeCount = 0, o
             disabled={submitting || !department}
             className="inline-flex h-9 items-center rounded-[8px] bg-red-600 px-3 text-[0.8rem] font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {submitting ? 'Deleting…' : 'Delete department'}
+            {submitting ? <LoadingButtonLabel label="Deleting" /> : 'Delete department'}
           </button>
         </>
       }

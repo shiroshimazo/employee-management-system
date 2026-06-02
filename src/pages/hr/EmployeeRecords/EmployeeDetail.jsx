@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowLeft, FileText } from 'lucide-react'
 import AdminLayout from '../../../layouts/AdminLayout.jsx'
+import { LoadingState } from '../../../components/common/LoadingBars.jsx'
 import StatusBadge from '../../../components/common/StatusBadge.jsx'
 import { getEmployeeById } from '../../../services/employee.service.js'
 import { getAttendanceStats } from '../../../services/attendance.service.js'
@@ -143,7 +144,11 @@ function EmployeeDetail() {
       ) : null}
 
       {loading && !employee ? (
-        <p className="text-[0.9rem] text-[#4A5568]">Loading employee…</p>
+        <LoadingState
+          label="Loading employee"
+          className="text-[0.9rem] text-[#4A5568]"
+          barsClassName="h-4 w-6"
+        />
       ) : employee ? (
         <>
           {/* Identity header */}

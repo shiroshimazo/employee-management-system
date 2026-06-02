@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import Modal from '../common/Modal/Modal.jsx'
+import { LoadingButtonLabel } from '../common/LoadingBars.jsx'
 
 /**
  * LeaveRequestFormModal — submit a new leave request, or edit a pending one.
@@ -138,7 +139,13 @@ function LeaveRequestFormModal({
             disabled={submitting}
             className="inline-flex h-9 items-center rounded-[8px] bg-[#2C5EF5] px-3 text-[0.8rem] font-semibold text-white transition-colors hover:bg-[#1E47C9] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {submitting ? 'Saving…' : isEdit ? 'Save changes' : 'Submit request'}
+            {submitting ? (
+              <LoadingButtonLabel label="Saving" />
+            ) : isEdit ? (
+              'Save changes'
+            ) : (
+              'Submit request'
+            )}
           </button>
         </>
       }

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Building2, Clock4, Download, RefreshCw, TrendingUp, Users } from 'lucide-react'
 import AdminLayout from '../../../layouts/AdminLayout.jsx'
+import { LoadingButtonLabel } from '../../../components/common/LoadingBars.jsx'
 import StatCard from '../../../components/common/StatCard.jsx'
 import EmployeeGrowthChart from '../../../components/charts/EmployeeGrowthChart.jsx'
 import DepartmentHeadcountChart from '../../../components/charts/DepartmentHeadcountChart.jsx'
@@ -137,8 +138,14 @@ function AdminReports() {
             disabled={loading}
             className="inline-flex h-9 items-center gap-1.5 rounded-[8px] border border-slate-200 bg-white px-3 text-[0.8rem] font-medium text-[#4A5568] transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <RefreshCw size={14} strokeWidth={2.25} className={loading ? 'animate-spin' : ''} aria-hidden="true" />
-            Refresh
+            {loading ? (
+              <LoadingButtonLabel label="Refreshing" />
+            ) : (
+              <>
+                <RefreshCw size={14} strokeWidth={2.25} aria-hidden="true" />
+                Refresh
+              </>
+            )}
           </button>
           <button
             type="button"

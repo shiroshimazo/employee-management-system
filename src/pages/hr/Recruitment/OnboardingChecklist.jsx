@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { ClipboardList, Plus, Trash2 } from 'lucide-react'
 import AdminLayout from '../../../layouts/AdminLayout.jsx'
+import { LoadingState } from '../../../components/common/LoadingBars.jsx'
 import {
   createTask,
   deleteTask,
@@ -233,7 +234,9 @@ function OnboardingChecklist() {
               </form>
 
               {loading && tasks.length === 0 ? (
-                <p className="py-6 text-center text-[0.85rem] text-[#4A5568]">Loading tasks…</p>
+                <div className="py-6 text-center text-[0.85rem] text-[#4A5568]">
+                  <LoadingState label="Loading tasks" />
+                </div>
               ) : tasks.length === 0 ? (
                 <div className="flex flex-col items-center justify-center gap-1 py-10 text-center">
                   <ClipboardList size={22} strokeWidth={1.75} className="text-[#94A3B8]" aria-hidden="true" />

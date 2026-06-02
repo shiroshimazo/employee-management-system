@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { CalendarDays, Clock4, MinusCircle, UserMinus } from 'lucide-react'
 import AdminLayout from '../../../layouts/AdminLayout.jsx'
+import { LoadingState } from '../../../components/common/LoadingBars.jsx'
 import StatusBadge from '../../../components/common/StatusBadge.jsx'
 import AttendanceClockCard from '../../../components/attendance/AttendanceClockCard.jsx'
 import AttendanceToolbar from '../../../components/attendance/AttendanceToolbar.jsx'
@@ -260,7 +261,7 @@ function MyAttendancePage() {
               {loading && rows.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-4 py-10 text-center text-[0.85rem] text-[#4A5568]">
-                    Loading your attendance…
+                    <LoadingState label="Loading your attendance" />
                   </td>
                 </tr>
               ) : rows.length === 0 ? (

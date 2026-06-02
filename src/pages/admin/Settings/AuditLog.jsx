@@ -13,6 +13,7 @@ import {
   X,
 } from 'lucide-react'
 import AdminLayout from '../../../layouts/AdminLayout.jsx'
+import { LoadingState } from '../../../components/common/LoadingBars.jsx'
 import { getAuditLogs } from '../../../services/audit.service.js'
 
 /**
@@ -146,7 +147,9 @@ function AuditLog() {
   }, [load, query])
 
   const totalLabel = useMemo(() => {
-    if (loading) return 'Loading…'
+    if (loading) {
+      return <LoadingState label="Loading" barsClassName="h-3 w-5" />
+    }
     return `${rows.length} ${rows.length === 1 ? 'entry' : 'entries'}`
   }, [loading, rows.length])
 
@@ -248,7 +251,7 @@ function AuditLog() {
               {loading && rows.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-4 py-10 text-center text-[0.85rem] text-[#4A5568]">
-                    Loading audit log…
+                    <LoadingState label="Loading audit log" />
                   </td>
                 </tr>
               ) : rows.length === 0 ? (

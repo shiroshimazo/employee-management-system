@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ArrowLeft, Download, TrendingDown, UserMinus, UserPlus, Users } from 'lucide-react'
 import AdminLayout from '../../../layouts/AdminLayout.jsx'
+import { LoadingState } from '../../../components/common/LoadingBars.jsx'
 import StatCard from '../../../components/common/StatCard.jsx'
 import EmployeeGrowthChart from '../../../components/charts/EmployeeGrowthChart.jsx'
 import { getTurnoverData } from '../../../services/report.service.js'
@@ -133,7 +134,7 @@ function TurnoverReport() {
               {loading && !data ? (
                 <tr>
                   <td colSpan={5} className="px-4 py-10 text-center text-[0.85rem] text-[#4A5568]">
-                    Loading turnover…
+                    <LoadingState label="Loading turnover" />
                   </td>
                 </tr>
               ) : (

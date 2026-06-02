@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Eye, Users } from 'lucide-react'
 import AdminLayout from '../../layouts/AdminLayout.jsx'
+import { LoadingState } from '../../components/common/LoadingBars.jsx'
 import StatusBadge from '../../components/common/StatusBadge.jsx'
 import AttendanceToolbar from '../../components/attendance/AttendanceToolbar.jsx'
 import AttendanceSummaryCards from '../../components/attendance/AttendanceSummaryCards.jsx'
@@ -155,7 +156,9 @@ function TeamAttendancePage() {
 
   const visibleCount = rows.length
   const totalLabel = useMemo(() => {
-    if (loading) return 'Loading…'
+    if (loading) {
+      return <LoadingState label="Loading" barsClassName="h-3 w-5" />
+    }
     if (count === visibleCount) {
       return `${count} ${count === 1 ? 'record' : 'records'}`
     }
@@ -267,7 +270,7 @@ function TeamAttendancePage() {
               {loading && rows.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-4 py-10 text-center text-[0.85rem] text-[#4A5568]">
-                    Loading team attendance…
+                    <LoadingState label="Loading team attendance" />
                   </td>
                 </tr>
               ) : rows.length === 0 ? (

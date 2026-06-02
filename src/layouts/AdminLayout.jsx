@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useAuth } from '../hooks/useAuth.js'
 import Sidebar from '../components/common/Sidebar/Sidebar.jsx'
+import { LoadingState } from '../components/common/LoadingBars.jsx'
 import { fadeDown } from '../lib/motion.js'
 import { homePathForRole } from '../utils/roleUtils.js'
 
@@ -27,7 +28,11 @@ function AdminLayout({ children }) {
   if (loading || !user) {
     return (
       <main className="flex min-h-dvh items-center justify-center bg-[#F1F3F5] [font-family:'Geist',sans-serif]">
-        <p className="text-[0.95rem] text-[#4A5568]">Loading…</p>
+        <LoadingState
+          label="Loading"
+          className="text-[0.95rem] text-[#4A5568]"
+          barsClassName="h-5 w-8"
+        />
       </main>
     )
   }

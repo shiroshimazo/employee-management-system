@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import Modal from '../common/Modal/Modal.jsx'
+import { LoadingButtonLabel } from '../common/LoadingBars.jsx'
 
 /**
  * DepartmentFormModal — shared form for both "Add" and "Edit" flows.
@@ -120,7 +121,13 @@ function DepartmentFormModal({
             disabled={submitting}
             className="inline-flex h-9 items-center rounded-[8px] bg-[#2C5EF5] px-3 text-[0.8rem] font-semibold text-white transition-colors hover:bg-[#1E47C9] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {submitting ? 'Saving…' : isEdit ? 'Save changes' : 'Create department'}
+            {submitting ? (
+              <LoadingButtonLabel label="Saving" />
+            ) : isEdit ? (
+              'Save changes'
+            ) : (
+              'Create department'
+            )}
           </button>
         </>
       }

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Building2, Pencil, Plus, Trash2, Users } from 'lucide-react'
 import AdminLayout from '../../../layouts/AdminLayout.jsx'
+import { LoadingState } from '../../../components/common/LoadingBars.jsx'
 import StatusBadge from '../../../components/common/StatusBadge.jsx'
 import DepartmentFormModal from '../../../components/departments/DepartmentFormModal.jsx'
 import DeleteDepartmentModal from '../../../components/departments/DeleteDepartmentModal.jsx'
@@ -147,7 +148,9 @@ function DepartmentListPage() {
 
   const visibleCount = rows.length
   const totalLabel = useMemo(() => {
-    if (loading) return 'Loading…'
+    if (loading) {
+      return <LoadingState label="Loading" barsClassName="h-3 w-5" />
+    }
     if (count === visibleCount) {
       return `${count} ${count === 1 ? 'department' : 'departments'}`
     }
@@ -235,7 +238,7 @@ function DepartmentListPage() {
                     colSpan={6}
                     className="px-4 py-10 text-center text-[0.85rem] text-[#4A5568]"
                   >
-                    Loading departments…
+                    <LoadingState label="Loading departments" />
                   </td>
                 </tr>
               ) : rows.length === 0 ? (

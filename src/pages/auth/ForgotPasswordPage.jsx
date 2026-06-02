@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Mail, MailCheck } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { LoadingButtonLabel } from '../../components/common/LoadingBars.jsx'
 import { requestPasswordReset } from '../../services/auth.service.js'
 import { fadeDown } from '../../lib/motion.js'
 
@@ -127,7 +128,11 @@ function ForgotPasswordPage() {
               type="submit"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'SENDING…' : 'SEND RESET LINK'}
+              {isSubmitting ? (
+                <LoadingButtonLabel label="SENDING" barsClassName="h-4 w-6" />
+              ) : (
+                'SEND RESET LINK'
+              )}
             </button>
 
             {submitError ? (

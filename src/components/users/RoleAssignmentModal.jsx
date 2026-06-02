@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AlertTriangle, ShieldAlert } from 'lucide-react'
 import Modal from '../common/Modal/Modal.jsx'
+import { LoadingButtonLabel } from '../common/LoadingBars.jsx'
 import StatusBadge from '../common/StatusBadge.jsx'
 import { ROLES } from '../../services/user.service.js'
 
@@ -93,7 +94,7 @@ function RoleAssignmentModal({ open, onClose, user, currentUserId, onConfirm }) 
             disabled={submitting || !user || unchanged || selfDemotion}
             className="inline-flex h-9 items-center rounded-[8px] bg-[#2C5EF5] px-3 text-[0.8rem] font-semibold text-white transition-colors hover:bg-[#1E47C9] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {submitting ? 'Saving…' : 'Save role'}
+            {submitting ? <LoadingButtonLabel label="Saving" /> : 'Save role'}
           </button>
         </>
       }

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { LoadingButtonLabel } from '../../components/common/LoadingBars.jsx'
 import { signInWithPassword } from '../../services/auth.service.js'
 import { fadeDown } from '../../lib/motion.js'
 
@@ -143,7 +144,11 @@ function LoginPage() {
             type="submit"
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'SIGNING IN…' : 'LOGIN'}
+            {isSubmitting ? (
+              <LoadingButtonLabel label="SIGNING IN" barsClassName="h-4 w-6" />
+            ) : (
+              'LOGIN'
+            )}
           </button>
 
           {submitError ? (

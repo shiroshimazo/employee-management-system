@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { ShieldCheck, UserCog, Users } from 'lucide-react'
 import AdminLayout from '../../../layouts/AdminLayout.jsx'
+import { LoadingState } from '../../../components/common/LoadingBars.jsx'
 import StatusBadge from '../../../components/common/StatusBadge.jsx'
 import UsersToolbar from '../../../components/users/UsersToolbar.jsx'
 import RoleAssignmentModal from '../../../components/users/RoleAssignmentModal.jsx'
@@ -100,7 +101,9 @@ function UserListPage() {
 
   const visibleCount = rows.length
   const totalLabel = useMemo(() => {
-    if (loading) return 'Loading…'
+    if (loading) {
+      return <LoadingState label="Loading" barsClassName="h-3 w-5" />
+    }
     if (count === visibleCount) return `${count} ${count === 1 ? 'user' : 'users'}`
     return `${visibleCount} of ${count} users`
   }, [loading, count, visibleCount])
@@ -167,7 +170,7 @@ function UserListPage() {
               {loading && rows.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-4 py-10 text-center text-[0.85rem] text-[#4A5568]">
-                    Loading users…
+                    <LoadingState label="Loading users" />
                   </td>
                 </tr>
               ) : rows.length === 0 ? (

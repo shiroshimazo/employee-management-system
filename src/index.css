@@ -1,1 +1,26 @@
 @import "tailwindcss";
+
+@keyframes loading-ui-wave-bars {
+  0%,
+  100% {
+    transform: scaleY(1);
+    opacity: 0.5;
+  }
+
+  50% {
+    transform: scaleY(0.6);
+    opacity: 1;
+  }
+}
+
+.loading-bars__bar {
+  animation: loading-ui-wave-bars var(--duration, 1.2s) ease-in-out infinite;
+  transform-origin: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-bars__bar {
+    animation-duration: 2.4s;
+    transform: scaleY(0.8);
+  }
+}
