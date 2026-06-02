@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import {
+  Ban,
   CalendarDays,
   CheckCircle2,
   Filter,
@@ -120,7 +121,18 @@ function PayrollRunList() {
   const [createOpen, setCreateOpen] = useState(false)
   const [reviewTarget, setReviewTarget] = useState(null)
   const [approvalTarget, setApprovalTarget] = useState(null)
-  const { runs, count, loading, error, refresh, createRun, submitForReview, approveRun } = usePayrollRuns({ status })
+  const [cancelTarget, setCancelTarget] = useState(null)
+  const {
+    runs,
+    count,
+    loading,
+    error,
+    refresh,
+    createRun,
+    submitForReview,
+    approveRun,
+    cancelRun,
+  } = usePayrollRuns({ status })
 
   const statusCounts = useMemo(
     () =>
@@ -166,6 +178,12 @@ function PayrollRunList() {
     const approved = await approveRun(runId)
     if (status && status !== approved.status) setStatus('')
     return approved
+  }
+
+  async function handleCancelRun(runId) {
+    const cancelled = await cancelRun(runId)
+    if (status && status !== cancelled.status) setStatus('')
+    return cancelled
   }
 
   return (
@@ -346,31 +364,12 @@ function PayrollRunList() {
                       {formatTimestamp(run.createdAt)}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      {run.status === 'draft' ? (
-                        <button
-                          type="button"
-                          onClick={() => setReviewTarget(run)}
-                          aria-label={`Submit ${run.name} for review`}
-                          className="inline-flex h-8 items-center gap-1.5 rounded-[8px] px-2 text-[0.78rem] font-semibold text-[#4A5568] transition-colors hover:bg-slate-100 hover:text-[#0F1419] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2C5EF5]"
-                        >
-                          <Send size={13} strokeWidth={2.25} aria-hidden="true" />
-                          <span>Submit</span>
-                        </button>
-                      ) : run.status === 'review' ? (
-                        <button
-                          type="button"
-                          onClick={() => setApprovalTarget(run)}
-                          aria-label={`Approve ${run.name}`}
-                          className="inline-flex h-8 items-center gap-1.5 rounded-[8px] px-2 text-[0.78rem] font-semibold text-[#166534] transition-colors hover:bg-emerald-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2C5EF5]"
-                        >
-                          <CheckCircle2 size={13} strokeWidth={2.25} aria-hidden="true" />
-                          <span>Approve</span>
-                        </button>
-                      ) : (
-                        <span className="text-[0.72rem] text-[#94A3B8] [font-family:'Geist_Mono',monospace]">
-                          -
-                        </span>
-                      )}
+                      <RunActions
+                        run={run}
+                        onSubmitForReview={setReviewTarget}
+                        onApprove={setApprovalTarget}
+                        onCancel={setCancelTarget}
+                      />
                     </td>
                   </tr>
                 ))
@@ -398,6 +397,13 @@ function PayrollRunList() {
         open={Boolean(approvalTarget)}
         onClose={() => setApprovalTarget(null)}
         onSubmit={handleApproveRun}
+      />
+      <RunCancelModal
+        key={cancelTarget?.id ?? 'payroll-run-cancel'}
+        run={cancelTarget}
+        open={Boolean(cancelTarget)}
+        onClose={() => setCancelTarget(null)}
+        onSubmit={handleCancelRun}
       />
     </PayrollLayout>
   )
@@ -450,6 +456,54 @@ function RunToolbar({ status, onStatusChange, onClear }) {
           <span>Clear</span>
         </button>
       ) : null}
+    </div>
+  )
+}
+
+function RunActions({ run, onSubmitForReview, onApprove, onCancel }) {
+  if (run.status === 'approved' || run.status === 'cancelled') {
+    return (
+      <span className="text-[0.72rem] text-[#94A3B8] [font-family:'Geist_Mono',monospace]">
+        -
+      </span>
+    )
+  }
+
+  return (
+    <div className="flex justify-end gap-1">
+      {run.status === 'draft' ? (
+        <button
+          type="button"
+          onClick={() => onSubmitForReview(run)}
+          aria-label={`Submit ${run.name} for review`}
+          className="inline-flex h-8 items-center gap-1.5 rounded-[8px] px-2 text-[0.78rem] font-semibold text-[#4A5568] transition-colors hover:bg-slate-100 hover:text-[#0F1419] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2C5EF5]"
+        >
+          <Send size={13} strokeWidth={2.25} aria-hidden="true" />
+          <span>Submit</span>
+        </button>
+      ) : null}
+
+      {run.status === 'review' ? (
+        <button
+          type="button"
+          onClick={() => onApprove(run)}
+          aria-label={`Approve ${run.name}`}
+          className="inline-flex h-8 items-center gap-1.5 rounded-[8px] px-2 text-[0.78rem] font-semibold text-[#166534] transition-colors hover:bg-emerald-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2C5EF5]"
+        >
+          <CheckCircle2 size={13} strokeWidth={2.25} aria-hidden="true" />
+          <span>Approve</span>
+        </button>
+      ) : null}
+
+      <button
+        type="button"
+        onClick={() => onCancel(run)}
+        aria-label={`Cancel ${run.name}`}
+        className="inline-flex h-8 items-center gap-1.5 rounded-[8px] px-2 text-[0.78rem] font-semibold text-red-700 transition-colors hover:bg-red-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2C5EF5]"
+      >
+        <Ban size={13} strokeWidth={2.25} aria-hidden="true" />
+        <span>Cancel</span>
+      </button>
     </div>
   )
 }
@@ -588,6 +642,79 @@ function RunCreateModal({ open, onClose, onSubmit }) {
             Period end must be on or after the start date.
           </p>
         ) : null}
+
+        {error ? (
+          <p className="m-0 rounded-[8px] bg-red-50 px-3 py-2 text-[0.8rem] text-red-700" role="alert">
+            {error}
+          </p>
+        ) : null}
+      </form>
+    </Modal>
+  )
+}
+
+function RunCancelModal({ run, open, onClose, onSubmit }) {
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState(null)
+
+  if (!run) return null
+
+  async function handleSubmit(event) {
+    event.preventDefault()
+
+    setSubmitting(true)
+    setError(null)
+    try {
+      await onSubmit(run.id)
+      onClose?.()
+    } catch (err) {
+      setError(err?.message ?? 'Could not cancel this payroll run.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <Modal
+      open={open}
+      onClose={submitting ? undefined : onClose}
+      size="sm"
+      title="Cancel payroll run"
+      description="Move this payroll run out of the active workflow."
+      footer={
+        <>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={submitting}
+            className="inline-flex h-9 items-center rounded-[8px] border border-slate-200 bg-white px-3 text-[0.8rem] font-medium text-[#4A5568] transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Keep run
+          </button>
+          <button
+            type="submit"
+            form="payroll-run-cancel-form"
+            disabled={submitting}
+            className="inline-flex h-9 items-center gap-1.5 rounded-[8px] bg-red-600 px-3 text-[0.8rem] font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {submitting ? <LoadingButtonLabel label="Cancelling" /> : 'Cancel run'}
+          </button>
+        </>
+      }
+    >
+      <form id="payroll-run-cancel-form" onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <div className="rounded-[12px] border border-slate-200 bg-slate-50/70 p-3">
+          <p className="m-0 text-[0.9rem] font-semibold text-[#0F1419]">
+            {run.name}
+          </p>
+          <p className="m-0 mt-1 text-[0.75rem] text-[#4A5568] [font-family:'Geist_Mono',monospace]">
+            {formatPeriod(run)}
+          </p>
+        </div>
+
+        <p className="m-0 rounded-[10px] border border-red-200 bg-red-50 px-3 py-2 text-[0.8rem] leading-snug text-red-800">
+          This will mark the run as cancelled. Approved runs cannot be cancelled.
+        </p>
 
         {error ? (
           <p className="m-0 rounded-[8px] bg-red-50 px-3 py-2 text-[0.8rem] text-red-700" role="alert">

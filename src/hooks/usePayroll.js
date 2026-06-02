@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   approvePayrollRun,
+  cancelPayrollRun,
   createPayrollRun,
   getPayrollDashboardMetrics,
   getPayrollRuns,
@@ -89,12 +90,21 @@ export function usePayrollRuns({ status = '', limit = 100, offset = 0 } = {}) {
     [refresh],
   )
 
+  const cancelRun = useCallback(
+    async (runId) => {
+      const cancelled = await cancelPayrollRun(runId)
+      await refresh()
+      return cancelled
+    },
+    [refresh],
+  )
+
   useEffect(() => {
     const timer = setTimeout(refresh, 0)
     return () => clearTimeout(timer)
   }, [refresh])
 
-  return { runs, count, loading, error, refresh, createRun, submitForReview, approveRun }
+  return { runs, count, loading, error, refresh, createRun, submitForReview, approveRun, cancelRun }
 }
 
 export default usePayrollDashboard

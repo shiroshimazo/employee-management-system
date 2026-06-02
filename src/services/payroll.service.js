@@ -232,6 +232,19 @@ export async function approvePayrollRun(runId) {
   return normalizePayrollRun(data)
 }
 
+export async function cancelPayrollRun(runId) {
+  if (!runId) {
+    throw new Error('cancelPayrollRun requires a payroll run id.')
+  }
+
+  const { data, error } = await supabase.rpc('cancel_payroll_run', {
+    p_run_id: runId,
+  })
+  if (error) throw error
+
+  return normalizePayrollRun(data)
+}
+
 export async function updatePayrollEmployeeSalary(employeeId, salary) {
   if (!employeeId) {
     throw new Error('updatePayrollEmployeeSalary requires an employee id.')
